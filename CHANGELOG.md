@@ -1,6 +1,10 @@
 # CHANGELOG
 
-## [Unreleased]
+## [0.14.0] - 2026-10-14
+
+The first release of this fork. From here on every push to `main` that changes
+code is released automatically as the next patch version, with notes generated
+from its commits on the GitHub release page.
 
 ### Removed
 - **macOS and Linux.** The project is Windows-only. Gone: the macOS menu-bar

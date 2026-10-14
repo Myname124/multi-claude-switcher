@@ -4,7 +4,7 @@
 
 在同一台 Windows 电脑上切换多个 Claude Desktop 账号。免退出登录、免重打密码，每个账号的 Claude Code 对话记录各自保留。
 
-[![下载](https://img.shields.io/github/v/release/miou1107/multi-claude-switcher?label=download&style=flat-square)](https://github.com/miou1107/multi-claude-switcher/releases/latest)
+[![下载](https://img.shields.io/github/v/release/Myname124/multi-claude-switcher?label=download&style=flat-square)](https://github.com/Myname124/multi-claude-switcher/releases/latest)
 [![许可证 MIT](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE)
 &nbsp; [English](README.md) | **简体中文**
 
@@ -38,7 +38,7 @@
 > **Microsoft Store 版不支持**：如果你是从 Microsoft Store 安装 Claude Code，可能会因其沙盒限制而无法正常使用。
 >  建议你从 Claude 下载官方 .exe 独立安装版。
 
-到[最新版本](https://github.com/miou1107/multi-claude-switcher/releases/latest)
+到[最新版本](https://github.com/Myname124/multi-claude-switcher/releases/latest)
 下载 `Multi-Claude-Switcher_<版本>_windows_setup.exe` 运行。它只装给你这个用户，
 所以不会弹出管理员权限提示。装完从**开始菜单**开 **Multi-Claude Switcher**。
 

@@ -53,9 +53,12 @@ flags every file. Check formatting on LF-normalised copies rather than in place.
 
 ## Releasing
 
-Pushing a `v*` tag triggers `.github/workflows/release.yml`, which runs the
-tests, builds the Windows installer and publishes it as a GitHub Release.
-Nothing is released without a tag.
+Every push to `main` that changes code triggers `.github/workflows/release.yml`.
+It runs the tests, picks the next version (the newest `v*` tag with its last
+number plus one), builds the installer, attaches it to a draft release and then
+publishes it. Installed copies update to it on their next check. Pushes that
+only touch documentation do not release; to release anyway, run the workflow by
+hand from the Actions tab.
 
 ## Regenerating the README screenshot
 

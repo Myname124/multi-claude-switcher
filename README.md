@@ -5,7 +5,7 @@
 Run several Claude Desktop accounts on one Windows PC. No signing out, no retyping
 passwords, and every account keeps its own Code history.
 
-[![Download](https://img.shields.io/github/v/release/miou1107/multi-claude-switcher?label=download&style=flat-square)](https://github.com/miou1107/multi-claude-switcher/releases/latest)
+[![Download](https://img.shields.io/github/v/release/Myname124/multi-claude-switcher?label=download&style=flat-square)](https://github.com/Myname124/multi-claude-switcher/releases/latest)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE)
 &nbsp; **English** | [简体中文](README.zh-CN.md)
 
@@ -46,7 +46,7 @@ left. Enough friction that most people stop bothering.
 > depends on.
 
 Download `Multi-Claude-Switcher_<version>_windows_setup.exe` from the
-[latest release](https://github.com/miou1107/multi-claude-switcher/releases/latest)
+[latest release](https://github.com/Myname124/multi-claude-switcher/releases/latest)
 and run it. It installs for your user only, so there is no administrator prompt.
 Launch **Multi-Claude Switcher** from the Start Menu.
 

@@ -1,26 +1,39 @@
 name: Release
 
-# Cut a release by pushing a version tag, e.g.:
-#   git tag v0.6.1 && git push origin v0.6.1
-# Builds mcs-tray.exe (pure Go, no CGO) with the version baked in and attaches a
-# single _windows_setup.exe installer. Upgrades run the newer installer, which replaces
-# the running exe in place, so there is no separate self-update zip.
+# Every push to main that passes the tests becomes a release: the next version
+# number is picked automatically (the newest v* tag with its last number plus
+# one, starting at 0.14.0), mcs-tray.exe is built with that version baked in,
+# and the _windows_setup.exe installer is published. Installed copies pick it up
+# through their own update check, which reads this repository's latest release.
+#
+# Pushes that only touch documentation do not release. Run the workflow by hand
+# (Actions tab, "Run workflow") to release without a code change.
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'LICENSE'
+  workflow_dispatch:
 
 permissions:
   contents: write
 
+# One release at a time. Two pushes in quick succession would otherwise both
+# read the same newest tag and both claim the next version number.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
 jobs:
-  # The suite gates the release: a tag cannot publish a build whose tests fail.
+  # The suite gates the release: a push cannot publish a build whose tests fail.
   #
   # An identical copy of this job runs on every push and pull request, in
   # .github/workflows/ci.yml. Change both, or they drift: a Go bump or a new
   # step added only here means the continuous run stops
-  # matching the gate, and the gate is the one nobody exercises until a tag.
+  # matching the gate.
   #
   # go-version is 1.24, not the 1.22 in go.mod, and the same in every job here
   # on purpose: go.mod's version is a minimum, not a toolchain pin, and testing
@@ -58,28 +71,67 @@ jobs:
   # here, once, before any build starts, keeps that from coming back if a second
   # build job is ever added. internal/releaseflow's test fails if a second
   # release-creating step appears.
+  #
+  # The release starts as a draft and is published only once the installer is
+  # attached: a published release with no installer would make every installed
+  # copy's update check report "no download for this computer".
   create-release:
     needs: test
     runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.next.outputs.tag }}
+      version: ${{ steps.next.outputs.version }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Every tag, to find the newest version.
+          fetch-depth: 0
 
-      # Idempotent on purpose: re-running a failed workflow must not fail here
-      # because the release it made the first time still exists.
-      - name: Create the release if it does not exist
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Pick the version
+        id: next
         run: |
           set -euo pipefail
-          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
-            echo "Release $GITHUB_REF_NAME already exists; leaving it alone."
+          # A re-run of a commit that was already released keeps its version.
+          tag=$(git tag --points-at "$GITHUB_SHA" --list 'v*' | sort -V | tail -1)
+          if [ -z "$tag" ]; then
+            floor=0.14.0
+            latest=$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' | sort -V | tail -1)
+            next=$floor
+            if [ -n "$latest" ]; then
+              IFS=. read -r major minor patch <<<"${latest#v}"
+              bumped="$major.$minor.$((patch + 1))"
+              # Never below the floor: the first release has to be newer than
+              # the upstream 0.13.x the code started from.
+              next=$(printf '%s\n%s\n' "$bumped" "$floor" | sort -V | tail -1)
+            fi
+            tag="v$next"
+          fi
+          echo "Releasing $tag"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "version=${tag#v}" >> "$GITHUB_OUTPUT"
+
+      # Idempotent on purpose: a re-run must not fail because the draft it made
+      # the first time still exists. A draft left by a failed run is pointed at
+      # this commit, since publishing it creates the tag where it points.
+      - name: Create the draft release if it does not exist
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.next.outputs.tag }}
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists; pointing it at $GITHUB_SHA."
+            gh release edit "$TAG" --target "$GITHUB_SHA" || true
             exit 0
           fi
-          gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --generate-notes
+          gh release create "$TAG" --draft --target "$GITHUB_SHA" --title "$TAG" --generate-notes
 
   build-windows:
     needs: create-release
     runs-on: windows-latest
+    env:
+      TAG: ${{ needs.create-release.outputs.tag }}
+      VERSION: ${{ needs.create-release.outputs.version }}
     steps:
       - uses: actions/checkout@v4
 
@@ -87,43 +139,41 @@ jobs:
         with:
           go-version: '1.24'
 
-      - name: Derive version from tag
-        id: ver
-        shell: pwsh
-        run: |
-          $v = '${{ github.ref_name }}'.TrimStart('v')
-          "version=$v" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
-
       - name: Build Windows tray binary
         shell: pwsh
         # systray is pure-Go on Windows, so no C toolchain / CGO is needed.
         # -H=windowsgui makes it a GUI-subsystem exe, so it runs from the tray
         # with no console window. The exe's file icon comes from a committed
         # Windows resource (cmd/mcs-tray/rsrc_windows_amd64.syso), linked
-        # automatically. Only the tray app ships (CLI omitted, matching macOS).
+        # automatically. Only the tray app ships; the CLI is built from source.
         env:
           CGO_ENABLED: '0'
-          LDFLAGS: '-H=windowsgui -X github.com/miou1107/multi-claude-switcher/core.Version=${{ steps.ver.outputs.version }}'
         run: |
           New-Item -ItemType Directory -Force dist | Out-Null
-          go build -ldflags "$env:LDFLAGS" -o dist/mcs-tray.exe ./cmd/mcs-tray
+          go build -ldflags "-H=windowsgui -X github.com/miou1107/multi-claude-switcher/core.Version=$($env:VERSION)" -o dist/mcs-tray.exe ./cmd/mcs-tray
 
       - name: Build Windows installer (Inno Setup)
         shell: pwsh
         # A proper Setup.exe is the sole Windows download: per-user install, Start
         # Menu shortcut, uninstaller. Upgrades run the newer installer, which
-        # replaces the running exe in place — so no separate self-update zip.
-        env:
-          VERSION: ${{ steps.ver.outputs.version }}
+        # replaces the running exe in place, so there is no separate update zip.
         run: |
           choco install innosetup -y --no-progress
           & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /Qp "/DMyAppVersion=$($env:VERSION)" packaging\windows-setup.iss
           Get-ChildItem dist
 
-      # bash, not pwsh: the glob and $GITHUB_REF_NAME are expanded by the shell,
-      # and PowerShell does neither. Git Bash ships on windows-latest.
+      # bash, not pwsh: the glob is expanded by the shell, and PowerShell does
+      # not. Git Bash ships on windows-latest.
       - name: Upload the Windows installer
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload "$GITHUB_REF_NAME" dist/Multi-Claude-Switcher_*_windows_setup.exe --clobber
+        run: gh release upload "$TAG" dist/Multi-Claude-Switcher_*_windows_setup.exe --clobber
+
+      # Last, so the release only becomes visible to update checks once the
+      # installer they look for is on it.
+      - name: Publish the release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release edit "$TAG" --draft=false --latest
