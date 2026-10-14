@@ -561,12 +561,12 @@ func (w *WindowsPlatform) msixLaunchProfile(profilePath string) error {
 		return fmt.Errorf("Store Claude Desktop data directory not found")
 	}
 	if sameWindowsPath(profilePath, msixSlotDir(roaming)) {
-		return msixLaunch()
+		return msixLaunchIn(roaming)
 	}
 	if err := msixSwapToIn(roaming, filepath.Base(profilePath)); err != nil {
 		return err
 	}
-	return msixLaunch()
+	return msixLaunchIn(roaming)
 }
 
 // findClaudeExecutable locates the standalone Claude Desktop executable. Squirrel

@@ -655,3 +655,80 @@ func TestPickMSIXRoaming(t *testing.T) {
 		}
 	})
 }
+
+// TestMSIXAdoptOverlay covers Store builds whose slot is %APPDATA%\Claude: a
+// slot Claude had to create itself lands in LocalCache\Roaming\Claude and is
+// layered over every profile swapped in afterwards.
+func TestMSIXAdoptOverlay(t *testing.T) {
+	t.Run("no overlay is a no-op", func(t *testing.T) {
+		roaming := t.TempDir()
+		writeProfileDir(t, msixSlotDir(roaming), "A")
+		if err := msixAdoptOverlayIn(roaming, filepath.Join(t.TempDir(), "Claude")); err != nil {
+			t.Fatal(err)
+		}
+		if got := readMarker(t, msixSlotDir(roaming)); got != "A" {
+			t.Fatalf("slot = %q, want A", got)
+		}
+	})
+	t.Run("overlay with no slot becomes the slot", func(t *testing.T) {
+		roaming, overlay := t.TempDir(), filepath.Join(t.TempDir(), "Claude")
+		writeProfileDir(t, overlay, "new")
+		if err := msixAdoptOverlayIn(roaming, overlay); err != nil {
+			t.Fatal(err)
+		}
+		if exists(overlay) {
+			t.Fatal("overlay still there")
+		}
+		if got := readMarker(t, msixSlotDir(roaming)); got != "new" {
+			t.Fatalf("slot = %q, want new", got)
+		}
+	})
+	t.Run("overlay over a slot is parked, never merged or dropped", func(t *testing.T) {
+		roaming, overlay := t.TempDir(), filepath.Join(t.TempDir(), "Claude")
+		writeProfileDir(t, msixSlotDir(roaming), "main")
+		writeProfileDir(t, overlay, "other")
+		if err := msixAdoptOverlayIn(roaming, overlay); err != nil {
+			t.Fatal(err)
+		}
+		if exists(overlay) {
+			t.Fatal("overlay still there")
+		}
+		if got := readMarker(t, msixSlotDir(roaming)); got != "main" {
+			t.Fatalf("slot = %q, want main", got)
+		}
+		if got := readMarker(t, filepath.Join(msixContainerDir(roaming), msixRecreatedName)); got != "other" {
+			t.Fatalf("parked overlay = %q, want other", got)
+		}
+	})
+}
+
+// TestMSIXSwapClearsOverlay is the reported failure: a profile created while the
+// slot was absent sat in the overlay, so switching back to the main profile put
+// it in the slot but Claude still opened the other account. The swap must move
+// the overlay out first.
+func TestMSIXSwapClearsOverlay(t *testing.T) {
+	roaming, overlay := t.TempDir(), filepath.Join(t.TempDir(), "Claude")
+	orig := msixOverlayDir
+	msixOverlayDir = func(string) string { return overlay }
+	t.Cleanup(func() { msixOverlayDir = orig })
+
+	writeProfileDir(t, msixSlotDir(roaming), "main")
+	if err := msixParkForNewIn(roaming, "Mark"); err != nil {
+		t.Fatal(err)
+	}
+	// Claude created the new profile's data itself, in the overlay.
+	writeProfileDir(t, overlay, "mark")
+
+	if err := msixSwapToIn(roaming, msixDefaultName); err != nil {
+		t.Fatal(err)
+	}
+	if exists(overlay) {
+		t.Fatal("overlay survived the switch; Claude would still open Mark")
+	}
+	if got := readMarker(t, msixSlotDir(roaming)); got != "main" {
+		t.Fatalf("slot = %q, want main", got)
+	}
+	if got := readMarker(t, filepath.Join(msixContainerDir(roaming), "Mark")); got != "mark" {
+		t.Fatalf("parked Mark = %q, want mark", got)
+	}
+}

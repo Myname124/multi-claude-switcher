@@ -111,6 +111,86 @@ func configModTime(roaming string) time.Time {
 	return fi.ModTime()
 }
 
+// msixOverlayDir returns where the Store build puts a Claude data directory it
+// creates itself, when that is not the slot; "" when it is (older builds, whose
+// slot already lives in LocalCache\Roaming).
+//
+// Measured on 2.37337.1.0, whose slot is %APPDATA%\Claude: the package still
+// virtualizes NEW top-level AppData directories. A %APPDATA%\Claude that exists
+// when Claude starts, even an empty one MCS made, is written in place, nested
+// folders included. One that Claude has to create itself lands in
+// LocalCache\Roaming\Claude instead, and from then on Claude sees that directory
+// layered over the slot. Its files win, so every profile swapped into the slot
+// opens as the account signed in there, and switching appears to do nothing.
+//
+// A variable so tests can point it at a temp dir.
+var msixOverlayDir = func(roaming string) string {
+	appData := os.Getenv("APPDATA")
+	pkg := msixPackageDir()
+	if appData == "" || pkg == "" || !strings.EqualFold(filepath.Clean(roaming), filepath.Clean(appData)) {
+		return ""
+	}
+	return msixSlotDir(filepath.Join(pkg, "LocalCache", "Roaming"))
+}
+
+// msixAdoptOverlayIn moves an overlay out from over the slot. Claude must be
+// closed. It runs before anything moves into or out of the slot, and before a
+// launch.
+//
+// With no slot, the overlay is what Claude made while the slot was absent: it
+// belongs to the current profile and becomes the slot. With a slot as well, it
+// is a profile created before MCS knew to prevent this. Which account it holds
+// cannot be told from here, so it is parked as its own profile rather than
+// guessed at, and the user can switch to it and rename it. Never deleted.
+func msixAdoptOverlayIn(roaming, overlay string) error {
+	if overlay == "" {
+		return nil
+	}
+	if _, err := os.Stat(overlay); err != nil {
+		if os.IsNotExist(err) {
+			return nil
+		}
+		return fmt.Errorf("couldn't check %s: %w", overlay, err)
+	}
+	slot := msixSlotDir(roaming)
+	if _, err := os.Stat(slot); err != nil {
+		if !os.IsNotExist(err) {
+			return fmt.Errorf("couldn't check whether the live slot at %s is free: %w", slot, err)
+		}
+		if err := renameWithRetry(overlay, slot); err != nil {
+			return fmt.Errorf("无法把 %s 移回 %s，请完全退出 Claude 后再试（%w）", overlay, slot, err)
+		}
+		log.Printf("[msix] moved the data Claude created in %q into the slot", overlay)
+		return nil
+	}
+	container := msixContainerDir(roaming)
+	if err := os.MkdirAll(container, 0o755); err != nil {
+		return err
+	}
+	name := msixUnusedProfileName(roaming, msixRecreatedName)
+	if err := renameWithRetry(overlay, filepath.Join(container, name)); err != nil {
+		return fmt.Errorf("%s 盖住了当前账号的数据，无法把它移开，请完全退出 Claude 后再试（%w）", overlay, err)
+	}
+	log.Printf("[msix] %q was layered over the slot; parked it as profile %q", overlay, name)
+	return nil
+}
+
+// msixLaunchIn reopens Claude on whatever is in the slot. Where the Store build
+// would create a missing slot in its overlay, it first clears any overlay and
+// makes the slot itself, empty, so Claude writes into it in place.
+func msixLaunchIn(roaming string) error {
+	overlay := msixOverlayDir(roaming)
+	if err := msixAdoptOverlayIn(roaming, overlay); err != nil {
+		return err
+	}
+	if overlay != "" {
+		if err := os.MkdirAll(msixSlotDir(roaming), 0o755); err != nil {
+			return err
+		}
+	}
+	return msixLaunch()
+}
+
 // msixAUMID returns the AppUserModelID used to launch the packaged app, or "".
 func msixAUMID() string {
 	pkg := msixPackageDir()
@@ -400,6 +480,9 @@ func msixSwapToIn(roaming, targetName string) error {
 	if fi, err := os.Stat(targetDir); err != nil || !fi.IsDir() {
 		return fmt.Errorf("profile %q not found", targetName)
 	}
+	if err := msixAdoptOverlayIn(roaming, msixOverlayDir(roaming)); err != nil {
+		return err
+	}
 	if err := os.MkdirAll(container, 0o755); err != nil {
 		return err
 	}
@@ -458,6 +541,9 @@ func msixParkForNewIn(roaming, newName string) error {
 	current := st.Current
 	log.Printf("[msix] new profile %q: parking current %q, roaming=%q", newName, current, roaming)
 
+	if err := msixAdoptOverlayIn(roaming, msixOverlayDir(roaming)); err != nil {
+		return err
+	}
 	if err := os.MkdirAll(container, 0o755); err != nil {
 		return err
 	}
@@ -571,7 +657,7 @@ func MSIXNewProfile(newName string) error {
 	if err := msixParkForNewIn(roaming, strings.TrimSpace(newName)); err != nil {
 		return err
 	}
-	return msixLaunch()
+	return msixLaunchIn(roaming)
 }
 
 // MSIXPendingMigration reports whether a first-login session migration is queued
