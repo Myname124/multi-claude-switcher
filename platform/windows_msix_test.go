@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 )
 
 // writeProfileDir creates dir with a config.json holding marker, standing in for
@@ -534,10 +535,15 @@ func TestMSIXStrayIsNotListedAsAProfile(t *testing.T) {
 //
 // It leaves %LOCALAPPDATA%\AnthropicClaude absent on purpose: findClaudeExecutable
 // must fail to find the standalone build, which is what makes isMSIX() true here.
+//
+// %APPDATA% is pointed at an empty temp dir too: msixRoamingDir picks %APPDATA%
+// over the package dir when %APPDATA%\Claude looks live, and on a developer
+// machine the real one does.
 func msixRealFixture(t *testing.T) string {
 	t.Helper()
 	local := t.TempDir()
 	t.Setenv("LOCALAPPDATA", local)
+	t.Setenv("APPDATA", t.TempDir())
 	roaming := filepath.Join(local, "Packages", "Claude_test", "LocalCache", "Roaming")
 	if err := os.MkdirAll(roaming, 0o755); err != nil {
 		t.Fatal(err)
@@ -591,4 +597,61 @@ func TestPrepareRemoveRefusesPendingMigrationSource(t *testing.T) {
 	if _, err := w.PrepareRemove("Old"); err == nil {
 		t.Fatal("PrepareRemove accepted the profile a queued migration reads from")
 	}
+}
+
+// TestPickMSIXRoaming covers Store builds that stopped virtualizing %APPDATA%:
+// their data lives in %APPDATA%\Claude and LocalCache\Roaming has no Claude dir,
+// which used to leave the account list empty.
+func TestPickMSIXRoaming(t *testing.T) {
+	t.Run("unvirtualized build uses APPDATA", func(t *testing.T) {
+		virt, appData := t.TempDir(), t.TempDir()
+		writeProfileDir(t, msixSlotDir(appData), "A")
+		if got := pickMSIXRoaming(virt, appData); got != appData {
+			t.Fatalf("got %q, want %%APPDATA%% %q", got, appData)
+		}
+	})
+	t.Run("virtualized build keeps LocalCache", func(t *testing.T) {
+		virt, appData := t.TempDir(), t.TempDir()
+		writeProfileDir(t, msixSlotDir(virt), "A")
+		if got := pickMSIXRoaming(virt, appData); got != virt {
+			t.Fatalf("got %q, want LocalCache %q", got, virt)
+		}
+	})
+	t.Run("newer config wins when both exist", func(t *testing.T) {
+		virt, appData := t.TempDir(), t.TempDir()
+		writeProfileDir(t, msixSlotDir(virt), "old")
+		writeProfileDir(t, msixSlotDir(appData), "new")
+		old := time.Now().Add(-time.Hour)
+		if err := os.Chtimes(filepath.Join(msixSlotDir(virt), "config.json"), old, old); err != nil {
+			t.Fatal(err)
+		}
+		if got := pickMSIXRoaming(virt, appData); got != appData {
+			t.Fatalf("got %q, want the fresher %%APPDATA%% %q", got, appData)
+		}
+	})
+	t.Run("recorded state wins over a fresher config", func(t *testing.T) {
+		virt, appData := t.TempDir(), t.TempDir()
+		if err := writeMSIXStateIn(virt, msixState{Current: "Work"}); err != nil {
+			t.Fatal(err)
+		}
+		writeProfileDir(t, msixSlotDir(appData), "A")
+		if got := pickMSIXRoaming(virt, appData); got != virt {
+			t.Fatalf("got %q, want the root with state %q", got, virt)
+		}
+	})
+	t.Run("parked profiles in APPDATA keep APPDATA mid-switch", func(t *testing.T) {
+		virt, appData := t.TempDir(), t.TempDir()
+		if err := writeMSIXStateIn(appData, msixState{Current: "Work"}); err != nil {
+			t.Fatal(err)
+		}
+		if got := pickMSIXRoaming(virt, appData); got != appData {
+			t.Fatalf("got %q, want %%APPDATA%% %q", got, appData)
+		}
+	})
+	t.Run("nothing anywhere keeps LocalCache", func(t *testing.T) {
+		virt, appData := t.TempDir(), t.TempDir()
+		if got := pickMSIXRoaming(virt, appData); got != virt {
+			t.Fatalf("got %q, want LocalCache %q", got, virt)
+		}
+	})
 }

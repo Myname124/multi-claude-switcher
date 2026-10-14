@@ -56,6 +56,12 @@ func msixPackageDir() string {
 			return m
 		}
 	}
+	// A package that writes straight to %APPDATA% may never create LocalCache\Roaming.
+	for _, m := range matches {
+		if fi, err := os.Stat(m); err == nil && fi.IsDir() {
+			return m
+		}
+	}
 	return ""
 }
 
@@ -65,7 +71,44 @@ func msixRoamingDir() string {
 	if pkg == "" {
 		return ""
 	}
-	return filepath.Join(pkg, "LocalCache", "Roaming")
+	return pickMSIXRoaming(filepath.Join(pkg, "LocalCache", "Roaming"), os.Getenv("APPDATA"))
+}
+
+// pickMSIXRoaming chooses between the package's virtualized roaming dir and the
+// real %APPDATA%. Older Store builds had %APPDATA%\Claude redirected into
+// LocalCache\Roaming\Claude; newer ones (measured: 2.37337.1.0) opt out of that
+// virtualization and write to %APPDATA%\Claude directly, leaving LocalCache\Roaming
+// without a Claude dir at all. Looking only at LocalCache made the account list
+// come up empty on those builds.
+//
+// Where MCS has already recorded state, that root wins: its slot and parked
+// profiles live there. Otherwise the root whose Claude\config.json was written
+// most recently is the live one; with neither, the virtualized root is kept so
+// the behaviour on older builds is unchanged.
+func pickMSIXRoaming(virtualized, appData string) string {
+	if msixStateRecorded(virtualized) {
+		return virtualized
+	}
+	if appData == "" {
+		return virtualized
+	}
+	if msixStateRecorded(appData) {
+		return appData
+	}
+	if configModTime(appData).After(configModTime(virtualized)) {
+		return appData
+	}
+	return virtualized
+}
+
+// configModTime returns when <roaming>\Claude\config.json was last written, or the
+// zero time when it does not exist.
+func configModTime(roaming string) time.Time {
+	fi, err := os.Stat(GetProfileConfigPath(msixSlotDir(roaming)))
+	if err != nil {
+		return time.Time{}
+	}
+	return fi.ModTime()
 }
 
 // msixAUMID returns the AppUserModelID used to launch the packaged app, or "".
