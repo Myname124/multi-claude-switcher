@@ -91,7 +91,7 @@ func openFolder(path string) {
 }
 
 // fileManagerName is the OS file manager's name, for user-facing tooltips.
-func fileManagerName() string { return "File Explorer" }
+func fileManagerName() string { return "文件资源管理器" }
 
 // confirmDialog shows a Yes/No message box (in front, via a topmost owner); Yes =
 // confirm. The action verb is carried in the message text (a standard box cannot
@@ -130,9 +130,9 @@ $label.Left = 14; $label.Top = 14; $label.Width = 434; $label.Height = 78
 $tb = New-Object System.Windows.Forms.TextBox
 $tb.Left = 14; $tb.Top = 98; $tb.Width = 434; $tb.Text = ` + psQuote(defaultAnswer) + `
 $ok = New-Object System.Windows.Forms.Button
-$ok.Text = 'OK'; $ok.Left = 272; $ok.Top = 130; $ok.Width = 80; $ok.DialogResult = 'OK'
+$ok.Text = '确定'; $ok.Left = 272; $ok.Top = 130; $ok.Width = 80; $ok.DialogResult = 'OK'
 $cancel = New-Object System.Windows.Forms.Button
-$cancel.Text = 'Cancel'; $cancel.Left = 360; $cancel.Top = 130; $cancel.Width = 88; $cancel.DialogResult = 'Cancel'
+$cancel.Text = '取消'; $cancel.Left = 360; $cancel.Top = 130; $cancel.Width = 88; $cancel.DialogResult = 'Cancel'
 $form.Controls.AddRange(@($label, $tb, $ok, $cancel))
 $form.AcceptButton = $ok; $form.CancelButton = $cancel
 $form.Add_Shown({ $form.Activate(); $tb.Focus() })
@@ -164,9 +164,9 @@ $list.Top = 36; $list.Left = 12; $list.Width = 400; $list.Height = 210
 	}
 	b.WriteString(`$form.Controls.Add($list)
 $ok = New-Object System.Windows.Forms.Button
-$ok.Text = 'OK'; $ok.Top = 258; $ok.Left = 250; $ok.DialogResult = 'OK'
+$ok.Text = '确定'; $ok.Top = 258; $ok.Left = 250; $ok.DialogResult = 'OK'
 $cancel = New-Object System.Windows.Forms.Button
-$cancel.Text = 'Cancel'; $cancel.Top = 258; $cancel.Left = 335; $cancel.DialogResult = 'Cancel'
+$cancel.Text = '取消'; $cancel.Top = 258; $cancel.Left = 335; $cancel.DialogResult = 'Cancel'
 $form.Controls.Add($ok); $form.Controls.Add($cancel)
 $form.AcceptButton = $ok; $form.CancelButton = $cancel
 $form.Add_Shown({ $form.Activate() })
@@ -193,13 +193,13 @@ $label.Left = 14; $label.Top = 14; $label.Width = 430; $label.Height = 70
 $form.Controls.Add($label)
 $form.Tag = 0
 $cancel = New-Object System.Windows.Forms.Button
-$cancel.Text = 'Cancel'; $cancel.Left = 14; $cancel.Top = 100; $cancel.Width = 90
+$cancel.Text = '取消'; $cancel.Left = 14; $cancel.Top = 100; $cancel.Width = 90
 $cancel.Add_Click({ $form.Tag = 0; $form.Close() })
 $enable = New-Object System.Windows.Forms.Button
-$enable.Text = 'Enable'; $enable.Left = 150; $enable.Top = 100; $enable.Width = 120
+$enable.Text = '开启'; $enable.Left = 150; $enable.Top = 100; $enable.Width = 120
 $enable.Add_Click({ $form.Tag = 1; $form.Close() })
 $dont = New-Object System.Windows.Forms.Button
-$dont.Text = "Enable, don't ask again"; $dont.Left = 280; $dont.Top = 100; $dont.Width = 160
+$dont.Text = "开启，不再询问"; $dont.Left = 280; $dont.Top = 100; $dont.Width = 160
 $dont.Add_Click({ $form.Tag = 2; $form.Close() })
 $form.Controls.Add($cancel); $form.Controls.Add($enable); $form.Controls.Add($dont)
 $form.Add_Shown({ $form.Activate() })

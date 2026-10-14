@@ -91,9 +91,9 @@ func installUpdate(url, tag string, auto bool) error {
 func failedUpdate(auto bool, err error) error {
 	if !auto {
 		_ = openURL(releasesPageURL)
-		return fmt.Errorf("%w (opening the download page)", err)
+		return fmt.Errorf("%w（正在打开下载页面）", err)
 	}
-	return fmt.Errorf("%w (download it from %s)", err, releasesPageURL)
+	return fmt.Errorf("%w（请从 %s 下载）", err, releasesPageURL)
 }
 
 // downloadInstaller fetches the release's setup.exe into the scratch directory
@@ -127,7 +127,7 @@ func downloadInstallerTo(dir, url string) (string, error) {
 	n, _ := io.ReadFull(f, header)
 	f.Close()
 	if !looksLikeExecutable(header[:n]) {
-		return "", fmt.Errorf("the downloaded update is not a Windows installer")
+		return "", fmt.Errorf("下载的更新不是 Windows 安装程序")
 	}
 	return dest, nil
 }

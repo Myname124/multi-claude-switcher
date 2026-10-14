@@ -14,7 +14,7 @@ import (
 // class of users — anyone who opened Claude Desktop themselves rather than
 // through MCS, since profile detection works by matching the --user-data-dir
 // argument MCS passes.
-var ErrRunningProfileUnknown = errors.New("Claude Desktop is running but its profile could not be identified")
+var ErrRunningProfileUnknown = errors.New("Claude Desktop 正在运行，但无法识别它用的是哪个配置")
 
 // ManualAlign copies one profile's Code sessions into another WITHOUT changing
 // which account is active. It remembers the running profile, closes Claude

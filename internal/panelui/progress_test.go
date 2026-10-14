@@ -90,7 +90,7 @@ func TestProgressWorkingCard(t *testing.T) {
 	}
 	// The working card must not offer a way out. Closing it would leave the user
 	// looking at an ordinary screen while Claude is shut, with nothing saying why.
-	if strings.Contains(html, ">Close<") {
+	if strings.Contains(html, ">关闭<") {
 		t.Error("the working card offered a Close button")
 	}
 	// Nor may it auto dismiss: the work has not finished, and returning to the
@@ -130,7 +130,7 @@ func TestProgressWarningCardKeepsTheSuccessAndWaits(t *testing.T) {
 		"Sync finished",
 		"Copied 12 conversations into Home.",
 		"2 files could not be read and were skipped (see the log).",
-		`onclick="send('showSync','')">Close<`,
+		`onclick="send('showSync','')">关闭<`,
 	} {
 		if !strings.Contains(html, want) {
 			t.Errorf("warning card is missing %q", want)
@@ -151,7 +151,7 @@ func TestProgressFailedCardShowsTheReasonAndWaits(t *testing.T) {
 		"no profile folder there",
 		// Same reason as the timer above: a Close button wired to nothing, or to
 		// a misspelled action, is a card with no way out at all.
-		`onclick="send('showList','')">Close<`,
+		`onclick="send('showList','')">关闭<`,
 	} {
 		if !strings.Contains(html, want) {
 			t.Errorf("failed card is missing %q", want)
@@ -171,7 +171,7 @@ func TestProgressFailedCardWithoutAMessage(t *testing.T) {
 	if !strings.Contains(html, "Merge failed") {
 		t.Fatal("failed card lost its heading when no error text was given")
 	}
-	if !strings.Contains(html, ">Close<") {
+	if !strings.Contains(html, ">关闭<") {
 		t.Error("failed card without a message left the user no way out")
 	}
 }
@@ -215,7 +215,7 @@ func TestProgressDismissIsAllowlisted(t *testing.T) {
 // calls it done.
 func TestSwitchOutcomeSplitsTheThreeCases(t *testing.T) {
 	if got := SwitchOutcome("Home", nil); got.Phase != ProgressDone || got.Warn != "" ||
-		got.Detail != "You are now on Home." {
+		got.Detail != "现在使用的是 Home。" {
 		t.Errorf("a clean switch produced %+v", got)
 	}
 
@@ -230,7 +230,7 @@ func TestSwitchOutcomeSplitsTheThreeCases(t *testing.T) {
 	if got.Err != "" {
 		t.Errorf("a completed switch carried a failure message: %q", got.Err)
 	}
-	if got.Detail != "You are now on Home." {
+	if got.Detail != "现在使用的是 Home。" {
 		t.Errorf("a completed switch stopped naming the account: %q", got.Detail)
 	}
 
@@ -266,14 +266,14 @@ func TestSyncOutcomeTreatsUnreadableFilesAsAWarning(t *testing.T) {
 	if got.Phase != ProgressDone {
 		t.Fatalf("a sync that copied 12 conversations was reported as phase %v", got.Phase)
 	}
-	if !strings.Contains(got.Detail, "12 conversations") {
+	if !strings.Contains(got.Detail, "12 个对话") {
 		t.Errorf("the summary lost the count: %q", got.Detail)
 	}
 	// The skipped files belong in the warning box, not repeated in the summary.
-	if !strings.Contains(got.Warn, "2 files could not be read") {
+	if !strings.Contains(got.Warn, "有 2 个文件读不了") {
 		t.Errorf("the skipped files are missing from the warning: %q", got.Warn)
 	}
-	if strings.Contains(got.Detail, "could not be read") {
+	if strings.Contains(got.Detail, "读不了") {
 		t.Errorf("the skipped files were said twice: %q", got.Detail)
 	}
 }
@@ -285,7 +285,7 @@ func TestSyncOutcomeFailureUsesTheActionableMessage(t *testing.T) {
 	}
 	// core translates this one into something the user can act on. The card must
 	// not go around it and print the raw error.
-	if got.Err != "Quit Claude Desktop first, then try Sync again." {
+	if got.Err != "请先退出 Claude Desktop，然后再试一次同步。" {
 		t.Errorf("the card printed %q instead of the actionable message", got.Err)
 	}
 	if got.Dismiss != "showSync" {
@@ -294,13 +294,13 @@ func TestSyncOutcomeFailureUsesTheActionableMessage(t *testing.T) {
 }
 
 func TestBackupOutcomeCounts(t *testing.T) {
-	if got := BackupOutcome(0, 0); strings.Contains(got.Detail, "0 accounts") {
+	if got := BackupOutcome(0, 0); strings.Contains(got.Detail, "0 个账号") {
 		t.Errorf("a backup that found nothing said %q", got.Detail)
 	}
-	if got := BackupOutcome(1, 0); got.Detail != "Backed up 1 account." {
+	if got := BackupOutcome(1, 0); got.Detail != "已备份 1 个账号。" {
 		t.Errorf("one account produced %q", got.Detail)
 	}
-	if got := BackupOutcome(3, 0); got.Detail != "Backed up 3 accounts." {
+	if got := BackupOutcome(3, 0); got.Detail != "已备份 3 个账号。" {
 		t.Errorf("three accounts produced %q", got.Detail)
 	}
 	for _, n := range []int{0, 1, 3} {
@@ -319,10 +319,10 @@ func TestBackupOutcomeDoesNotBlameEmptinessForFailure(t *testing.T) {
 	if got.Phase != ProgressFailed {
 		t.Fatalf("four failed backups produced phase %v, want ProgressFailed", got.Phase)
 	}
-	if strings.Contains(got.Detail, "conversations stored") || strings.Contains(got.Err, "conversations stored") {
+	if strings.Contains(got.Detail, "存有对话") || strings.Contains(got.Err, "存有对话") {
 		t.Errorf("a failed backup blamed the user having no data: %+v", got)
 	}
-	if !strings.Contains(got.Err, "4 accounts could not be backed up") {
+	if !strings.Contains(got.Err, "4 个账号备份失败") {
 		t.Errorf("the failure lost its count: %q", got.Err)
 	}
 }
@@ -335,16 +335,16 @@ func TestBackupOutcomePartialFailureWarns(t *testing.T) {
 	if got.Phase != ProgressDone {
 		t.Fatalf("two of three backed up produced phase %v, want ProgressDone", got.Phase)
 	}
-	if got.Detail != "Backed up 2 accounts." {
+	if got.Detail != "已备份 2 个账号。" {
 		t.Errorf("the successful count was lost: %q", got.Detail)
 	}
-	if got.Warn != "1 other account could not be backed up (see the log)." {
+	if got.Warn != "另有 1 个账号备份失败（详见日志）。" {
 		t.Errorf("the failed count was lost or mis-pluralised: %q", got.Warn)
 	}
 }
 
 func TestMergeOutcome(t *testing.T) {
-	if got := MergeOutcome(nil); got.Phase != ProgressDone || got.Title != "Accounts merged" {
+	if got := MergeOutcome(nil); got.Phase != ProgressDone || got.Title != "账号已合并" {
 		t.Errorf("a clean merge produced %+v", got)
 	}
 	got := MergeOutcome(errors.New("could not read the archive"))
@@ -425,14 +425,14 @@ func TestOtherDoneCardsStillOnlyReturnToAScreen(t *testing.T) {
 func TestAddAccountCards(t *testing.T) {
 	for _, recovering := range []bool{false, true} {
 		start := listWith(AddAccountStarting(recovering))
-		if !strings.Contains(start, `class="prog-spin"`) || strings.Contains(start, ">Close<") {
+		if !strings.Contains(start, `class="prog-spin"`) || strings.Contains(start, ">关闭<") {
 			t.Errorf("recovering=%v: the working card must be a spinner with no Close", recovering)
 		}
 		done := AddAccountDone("Work", recovering)
 		if done.Phase != ProgressDone {
 			t.Errorf("recovering=%v: done card phase = %v", recovering, done.Phase)
 		}
-		if !strings.Contains(done.Detail, "Sign in to Work") {
+		if !strings.Contains(done.Detail, "登录 Work") {
 			t.Errorf("recovering=%v: done card must say to sign in, got %q", recovering, done.Detail)
 		}
 	}

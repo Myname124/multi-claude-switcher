@@ -164,7 +164,7 @@ func MergeDuplicates(plat platform.Platform, req MergeRequest) (*SyncReport, err
 	// panel only ever offers two distinct rows, but this is a core API and a stale
 	// panel is exactly the case the account check exists for.
 	if req.KeepIdentity == req.ArchiveIdentity {
-		return nil, fmt.Errorf("%s can't be merged into itself", DisplayName(req.KeepIdentity))
+		return nil, fmt.Errorf("%s 不能合并到它自己", DisplayName(req.KeepIdentity))
 	}
 	keepName := DisplayName(req.KeepIdentity)
 	archiveName := DisplayName(req.ArchiveIdentity)
@@ -177,32 +177,32 @@ func MergeDuplicates(plat platform.Platform, req MergeRequest) (*SyncReport, err
 	}
 	keepPath, ok := paths[req.KeepIdentity]
 	if !ok {
-		return nil, fmt.Errorf("%s is no longer there. Run Rescan", keepName)
+		return nil, fmt.Errorf("%s 已经不在了。请重新扫描", keepName)
 	}
 	archivePath, ok := paths[req.ArchiveIdentity]
 	if !ok {
-		return nil, fmt.Errorf("%s is no longer there. Run Rescan", archiveName)
+		return nil, fmt.Errorf("%s 已经不在了。请重新扫描", archiveName)
 	}
 
 	keepUUID, err := platform.GetProfileAccountUUID(keepPath)
 	if err != nil {
-		return nil, fmt.Errorf("%s has no account signed in, so there is nothing to merge into", keepName)
+		return nil, fmt.Errorf("%s 没有登录账号，无法合并进去", keepName)
 	}
 	archiveUUID, err := platform.GetProfileAccountUUID(archivePath)
 	if err != nil {
-		return nil, fmt.Errorf("%s has no account signed in, so there is nothing to merge", archiveName)
+		return nil, fmt.Errorf("%s 没有登录账号，没有可合并的内容", archiveName)
 	}
 	if keepUUID != archiveUUID {
 		// A stale panel could ask to merge rows that have changed underneath it.
 		// Merging two genuinely different accounts would mix their histories.
-		return nil, fmt.Errorf("%s and %s are different accounts, so they can't be merged", keepName, archiveName)
+		return nil, fmt.Errorf("%s 和 %s 是不同的账号，不能合并", keepName, archiveName)
 	}
 
 	// SyncSessions does NOT snapshot anything — the backup has always been the
 	// caller's job (switch.go, align.go and the CLI each take their own). Take it
 	// here, and abort rather than copy unprotected.
 	if _, err := NewBackupManager(req.BackupRoot).BackupIfHasData(keepPath); err != nil {
-		return nil, fmt.Errorf("aborting merge: could not back up %s first: %w", keepName, err)
+		return nil, fmt.Errorf("已中止合并：无法先备份 %s：%w", keepName, err)
 	}
 	report, err := SyncSessions(archivePath, keepPath)
 	if err != nil {
@@ -217,7 +217,7 @@ func MergeDuplicates(plat platform.Platform, req MergeRequest) (*SyncReport, err
 	if err != nil {
 		// Nothing has been given up: both profiles are in place and the keeper now
 		// holds the union, so a retry is safe and the warning is still showing.
-		return report, fmt.Errorf("could not make %s ready to archive: %w", archiveName, err)
+		return report, fmt.Errorf("无法让 %s 准备好归档：%w", archiveName, err)
 	}
 	// The two must have come back as different directories. On the Store build both
 	// profiles are addressed through one slot, and PrepareArchive earns the right to
@@ -226,7 +226,7 @@ func MergeDuplicates(plat platform.Platform, req MergeRequest) (*SyncReport, err
 	// the conversations just merged into it. Refusing costs a retry. Not refusing
 	// destroys exactly what the merge was for.
 	if samePath(newKeepPath, archivePath) {
-		return report, fmt.Errorf("refusing to archive %s: it is still the same folder as %s. Your conversations are safe in %s. Run Rescan and try again",
+		return report, fmt.Errorf("拒绝归档 %s：它和 %s 还是同一个文件夹。你的对话安全地保存在 %s 里。请重新扫描后再试",
 			archiveName, keepName, keepName)
 	}
 
@@ -243,7 +243,7 @@ func MergeDuplicates(plat platform.Platform, req MergeRequest) (*SyncReport, err
 	// than the failure being reported.
 	var registryErr error
 	if err := RemoveManaged(req.ArchiveIdentity); err != nil {
-		registryErr = fmt.Errorf("archived, but the managed list still lists it: %w", err)
+		registryErr = fmt.Errorf("已归档，但管理列表里还列着它：%w", err)
 		log.Printf("merge: %v", registryErr)
 	}
 	// The display name goes with the profile. Left behind, it would be inherited by

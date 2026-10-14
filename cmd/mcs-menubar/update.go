@@ -63,7 +63,7 @@ func autoUpdate() {
 // result in the panel status banner and installs when a newer release exists.
 func manualCheckAndInstall() {
 	if !updating.TryLock() {
-		setBusyStatus(false, "An update is already in progress.")
+		setBusyStatus(false, "已经在更新了。")
 		reloadPanel()
 		return
 	}
@@ -72,24 +72,24 @@ func manualCheckAndInstall() {
 	tag, assets, err := core.LatestRelease()
 	switch {
 	case err != nil:
-		setBusyStatus(false, "Update check failed. Try again later.")
+		setBusyStatus(false, "检查更新失败，请稍后再试。")
 		reloadPanel()
 		return
 	case !core.IsNewer(tag, core.Version):
-		setBusyStatus(false, "✓ You're on the latest version (v"+core.Version+").")
+		setBusyStatus(false, "✓ 已经是最新版本（v"+core.Version+"）。")
 		reloadPanel()
 		return
 	}
 	url, ok := findAppZip(assets)
 	if !ok {
-		setBusyStatus(false, "Update "+tag+" is available, but has no download for this platform.")
+		setBusyStatus(false, "有新版本 "+tag+"，但还没有适用于这个平台的下载。")
 		reloadPanel()
 		return
 	}
 	setBusyStatus(true, "Downloading "+tag+"…")
 	reloadPanel()
 	if err := installUpdate(url, tag); err != nil {
-		setBusyStatus(false, "Update failed: "+err.Error())
+		setBusyStatus(false, "更新失败："+err.Error())
 		reloadPanel()
 	}
 	// On success installUpdate relaunches and terminates this process.
@@ -108,7 +108,7 @@ func findAppZip(assets map[string]string) (string, bool) {
 // installUpdate downloads the packaged-app zip, extracts the mcs-menubar binary,
 // atomically swaps it in for the running executable, and relaunches the bundle.
 func installUpdate(url, tag string) error {
-	notify("Updating…", "Downloading "+tag)
+	notify("正在更新…", "正在下载 "+tag)
 
 	exe, err := os.Executable()
 	if err != nil {
@@ -164,7 +164,7 @@ func installUpdate(url, tag string) error {
 		cmd := exec.Command(exe)
 		_ = cmd.Start()
 	}
-	notify("Updated", "Restarting on "+tag+".")
+	notify("已更新", "正在以 "+tag+" 重新启动。")
 	C.TerminateApp()
 	return nil
 }

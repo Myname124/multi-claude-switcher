@@ -19,10 +19,10 @@ func TestUsageVMShowsBarsResetsAndStaleness(t *testing.T) {
 		FetchedAt: now.Add(-time.Minute),
 	}
 	vm := usageVM(e, now)
-	if vm.FiveHour.Percent != 42 || vm.FiveHour.Resets != "resets 15:00" {
+	if vm.FiveHour.Percent != 42 || vm.FiveHour.Resets != "15:00 重置" {
 		t.Errorf("5h: %+v", vm.FiveHour)
 	}
-	if vm.Week.Percent != 91 || !strings.HasPrefix(vm.Week.Resets, "resets Sat") {
+	if vm.Week.Percent != 91 || !strings.HasPrefix(vm.Week.Resets, "周六 ") {
 		t.Errorf("week: %+v", vm.Week)
 	}
 	if vm.Note != "" {
@@ -39,19 +39,19 @@ func TestUsageVMShowsBarsResetsAndStaleness(t *testing.T) {
 	if vm.Week.Percent != 91 {
 		t.Errorf("week should be unchanged: %+v", vm.Week)
 	}
-	if !strings.HasPrefix(vm.Note, "As of ") {
+	if !strings.HasSuffix(vm.Note, " 时的数据。") {
 		t.Errorf("stale reading not marked: %q", vm.Note)
 	}
 
 	// Failure with an earlier reading keeps the bars and says why.
-	e.Err = "Open this account in Claude once to refresh its usage."
+	e.Err = "在 Claude 里打开一次这个账号即可刷新额度。"
 	vm = usageVM(e, now)
 	if vm.FiveHour == nil || !strings.Contains(vm.Note, e.Err) {
 		t.Errorf("failure with reading: %+v", vm)
 	}
 
 	// Failure with nothing to show is the reason alone.
-	vm = usageVM(usage.Entry{Err: "No saved sign-in to read usage with."}, now)
+	vm = usageVM(usage.Entry{Err: "没有可用来读取额度的登录信息。"}, now)
 	if vm.FiveHour != nil || vm.Week != nil || vm.Note == "" {
 		t.Errorf("failure without reading: %+v", vm)
 	}
@@ -81,7 +81,7 @@ func TestAttachUsageAndTargetsSkipSignedOut(t *testing.T) {
 }
 
 func TestRenderListDrawsUsageOnBothCardKinds(t *testing.T) {
-	u := &UsageVM{FiveHour: &UsageBarVM{Percent: 75, Resets: "resets 15:00"}, Week: &UsageBarVM{Percent: 10}, Note: "As of 11:00."}
+	u := &UsageVM{FiveHour: &UsageBarVM{Percent: 75, Resets: "15:00 重置"}, Week: &UsageBarVM{Percent: 10}, Note: "11:00 时的数据。"}
 	page := RenderList([]ProfileVM{
 		{Folder: "Claude", Name: "Work", Current: true, SignedIn: true, UUID: "a", Usage: u},
 		{Folder: "Claude_P", Name: "Personal", SignedIn: true, UUID: "b", Usage: u},
@@ -90,7 +90,7 @@ func TestRenderListDrawsUsageOnBothCardKinds(t *testing.T) {
 	if n := strings.Count(page, `<div class="usage viewrow">`); n != 2 {
 		t.Fatalf("want usage on 2 cards, got %d", n)
 	}
-	for _, want := range []string{`class="u-mid" style="width:75%"`, `>75%<`, `resets 15:00`, `class="u-ok" style="width:10%"`, `As of 11:00.`} {
+	for _, want := range []string{`class="u-mid" style="width:75%"`, `>75%<`, `15:00 重置`, `class="u-ok" style="width:10%"`, `11:00 时的数据。`} {
 		if !strings.Contains(page, want) {
 			t.Errorf("page lacks %q", want)
 		}

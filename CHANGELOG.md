@@ -12,6 +12,11 @@
   item. `mcs usage` prints the same from a terminal.
 
 ### Changed
+- **The interface is in Simplified Chinese.** Every panel screen, dialog,
+  progress card, tray menu item and notification, plus the messages core writes
+  for the panel (sync results, scan notes, name checks, removal and merge
+  explanations). Low-level technical errors that wrap operating-system text,
+  and the command-line tool, stay in English.
 - **Updates, problem reports, the About dialog and the changelog link now
   point at the `Myname124/multi-claude-switcher` fork** instead of upstream.
 - **The release workflow no longer updates a Homebrew tap.** That step pushed

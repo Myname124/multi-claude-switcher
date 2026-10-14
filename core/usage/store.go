@@ -115,15 +115,15 @@ func (s *Store) Refresh(targets []Target, done func()) {
 func panelReason(err error) string {
 	switch {
 	case errors.Is(err, ErrTokenExpired), errors.Is(err, ErrUnauthorized):
-		return "Open this account in Claude once to refresh its usage."
+		return "在 Claude 里打开一次这个账号即可刷新额度。"
 	case errors.Is(err, ErrNoToken):
-		return "No saved sign-in to read usage with."
+		return "没有可用来读取额度的登录信息。"
 	case errors.Is(err, ErrForbidden):
-		return "This sign-in cannot read usage."
+		return "这个登录无权读取额度。"
 	case errors.Is(err, ErrUnsupported):
-		return "Usage is not available on this system."
+		return "这个系统上无法读取额度。"
 	default:
-		return "Usage could not be read just now."
+		return "暂时读不到额度。"
 	}
 }
 

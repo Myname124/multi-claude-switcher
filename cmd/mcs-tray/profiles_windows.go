@@ -34,7 +34,7 @@ var migrationWatcherRunning atomic.Bool
 func newProfileSupported() bool { return true }
 
 // newProfileMenuLabel is the menu text for the create-profile action (Store build).
-func newProfileMenuLabel() string { return "New account profile…" }
+func newProfileMenuLabel() string { return "新建账号…" }
 
 // runNewProfileFlow saves the current account as a profile and opens a fresh,
 // signed-out Claude so the user can add a second account, then relaunches the

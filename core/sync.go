@@ -82,12 +82,12 @@ func SyncSessions(srcProfilePath, dstProfilePath string) (*SyncReport, error) {
 	// saying that plainly is far more use than the missing config key.
 	srcAccount, err := platform.GetProfileAccountUUID(srcProfilePath)
 	if err != nil {
-		return nil, fmt.Errorf("%s has no account signed in yet, so it has no sessions to copy. Switch to it and sign in first",
+		return nil, fmt.Errorf("%s 还没有登录账号，没有可复制的对话。请先切换过去登录",
 			DisplayName(filepath.Base(srcProfilePath)))
 	}
 	dstAccount, err := platform.GetProfileAccountUUID(dstProfilePath)
 	if err != nil {
-		return nil, fmt.Errorf("%s has no account signed in yet, so there is nowhere to copy sessions to. Switch to it and sign in first",
+		return nil, fmt.Errorf("%s 还没有登录账号，对话无处可复制。请先切换过去登录",
 			DisplayName(filepath.Base(dstProfilePath)))
 	}
 

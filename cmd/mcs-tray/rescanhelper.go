@@ -28,13 +28,13 @@ var pickerBinaryName = func() string {
 func pickViaHelper() ([]string, bool) {
 	exe, err := os.Executable()
 	if err != nil {
-		notify("Rescan failed", "could not locate the app: "+err.Error())
+		notify("重新扫描失败", "找不到 app："+err.Error())
 		return nil, false
 	}
 	helper := filepath.Join(filepath.Dir(exe), pickerBinaryName)
 	out, err := exec.Command(helper).Output()
 	if err != nil {
-		notify("Rescan failed", "the account picker could not start: "+err.Error())
+		notify("重新扫描失败", "账号选择器没能启动："+err.Error())
 		return nil, false
 	}
 	for _, line := range strings.Split(string(out), "\n") {

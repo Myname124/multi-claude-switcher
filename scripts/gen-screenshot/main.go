@@ -30,20 +30,20 @@ import (
 // with (a work account alongside a personal one) plus a third to make the
 // plan pills visibly different.
 var accounts = []panelui.ProfileVM{
-	{Folder: "Claude", Name: "Work", Plan: "Team", Current: true, SignedIn: true,
+	{Folder: "Claude", Name: "工作", Plan: "Team", Current: true, SignedIn: true,
 		Usage: &panelui.UsageVM{
-			FiveHour: &panelui.UsageBarVM{Percent: 72, Resets: "resets 15:40"},
-			Week:     &panelui.UsageBarVM{Percent: 38, Resets: "resets Mon 09:00"},
+			FiveHour: &panelui.UsageBarVM{Percent: 72, Resets: "15:40 重置"},
+			Week:     &panelui.UsageBarVM{Percent: 38, Resets: "周一 09:00 重置"},
 		}},
-	{Folder: "Claude_Personal", Name: "Personal", Plan: "Max 20×", SignedIn: true,
+	{Folder: "Claude_Personal", Name: "个人", Plan: "Max 20×", SignedIn: true,
 		Usage: &panelui.UsageVM{
 			FiveHour: &panelui.UsageBarVM{Percent: 0},
-			Week:     &panelui.UsageBarVM{Percent: 93, Resets: "resets Thu 18:00"},
+			Week:     &panelui.UsageBarVM{Percent: 93, Resets: "周四 18:00 重置"},
 		}},
-	{Folder: "Claude_Side", Name: "Side project", Plan: "Pro", SignedIn: true,
+	{Folder: "Claude_Side", Name: "副业项目", Plan: "Pro", SignedIn: true,
 		Usage: &panelui.UsageVM{
-			FiveHour: &panelui.UsageBarVM{Percent: 12, Resets: "resets 13:10"},
-			Week:     &panelui.UsageBarVM{Percent: 21, Resets: "resets Sat 07:30"},
+			FiveHour: &panelui.UsageBarVM{Percent: 12, Resets: "13:10 重置"},
+			Week:     &panelui.UsageBarVM{Percent: 21, Resets: "周六 07:30 重置"},
 		}},
 }
 

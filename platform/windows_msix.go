@@ -232,7 +232,7 @@ func msixClearSlot(roaming string) error {
 		return err
 	}
 	if err := renameWithRetry(slot, stray); err != nil {
-		return fmt.Errorf("Claude recreated its data folder during the switch and it could not be moved out of the way. Fully quit Claude and try again (%w)", err)
+		return fmt.Errorf("切换过程中 Claude 重新建立了它的数据文件夹，无法把它移开。请完全退出 Claude 后再试（%w）", err)
 	}
 	log.Printf("[msix] Claude recreated the slot during the switch; moved it aside to %q (kept, not deleted)", filepath.Base(stray))
 	return nil

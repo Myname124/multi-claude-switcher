@@ -89,7 +89,7 @@ func checkForUpdate(auto bool) {
 	if !updating.TryLock() {
 		log.Printf("Update already in progress; skipping this check")
 		if !auto {
-			notify("Update in progress", "An update is already running.")
+			notify("正在更新", "已经有一个更新在进行中。")
 		}
 		return
 	}
@@ -99,7 +99,7 @@ func checkForUpdate(auto bool) {
 	if err != nil {
 		log.Printf("Update check failed: %v", err)
 		if !auto {
-			go infoDialog("Multi-Claude Switcher", "Could not check for updates:\n"+err.Error())
+			go infoDialog("Multi-Claude Switcher", "无法检查更新：\n"+err.Error())
 			return
 		}
 		// A background check stays quiet about a single failure: the network
@@ -112,8 +112,8 @@ func checkForUpdate(auto bool) {
 		// Settings and pressed the button by hand.
 		consecutiveCheckFailures++
 		if shouldWarnAboutFailedChecks(consecutiveCheckFailures) {
-			notify("Update checks are failing",
-				"Multi-Claude Switcher has not been able to reach GitHub for a while, so it may be out of date.")
+			notify("检查更新一直失败",
+				"Multi-Claude Switcher 已经有一段时间连不上 GitHub，可能不是最新版本。")
 		}
 		return
 	}
@@ -121,7 +121,7 @@ func checkForUpdate(auto bool) {
 	if !core.IsNewer(tag, core.Version) {
 		log.Printf("Up to date (current v%s, latest %s)", core.Version, tag)
 		if !auto {
-			go infoDialog("Multi-Claude Switcher", "You're on the latest version (v"+core.Version+").\nThere is no update to install.")
+			go infoDialog("Multi-Claude Switcher", "已经是最新版本（v"+core.Version+"）。\n没有需要安装的更新。")
 		}
 		return
 	}
@@ -130,7 +130,7 @@ func checkForUpdate(auto bool) {
 	if !ok {
 		log.Printf("Release %s has no downloadable asset for this platform (%s…%s); cannot update", tag, appZipPrefix, appZipSuffix)
 		if !auto {
-			go infoDialog("Multi-Claude Switcher", "Version "+tag+" is out, but it has no download for this computer yet.")
+			go infoDialog("Multi-Claude Switcher", "新版本 "+tag+" 已发布，但还没有适用于这台电脑的下载。")
 		}
 		return
 	}
@@ -143,9 +143,9 @@ func checkForUpdate(auto bool) {
 	if err := installUpdate(url, tag, auto); err != nil {
 		log.Printf("Update failed: %v", err)
 		if auto {
-			notify("Update failed", err.Error())
+			notify("更新失败", err.Error())
 		} else {
-			go infoDialog("Multi-Claude Switcher", "The update could not be installed:\n"+err.Error())
+			go infoDialog("Multi-Claude Switcher", "更新没能安装：\n"+err.Error())
 		}
 	}
 	// On success installUpdate relaunches and quits: macOS swaps the bundle, Windows
@@ -192,7 +192,7 @@ func announceUpdateIfNew() {
 		return
 	}
 	log.Printf("Started on v%s after updating from v%s", core.Version, previous)
-	notify("Multi-Claude Switcher updated", fmt.Sprintf("Now on v%s (was v%s).", core.Version, previous))
+	notify("Multi-Claude Switcher 已更新", fmt.Sprintf("现在是 v%s（原来是 v%s）。", core.Version, previous))
 }
 
 // copyExecutable copies src to dst (0755), truncating dst. Used by the macOS

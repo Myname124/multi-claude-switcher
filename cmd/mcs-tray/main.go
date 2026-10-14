@@ -43,7 +43,7 @@ func main() {
 	// instance is still quitting when the new one starts.
 	if !hasSkipInstanceFlag(os.Args) && anotherInstanceRunning() {
 		log.Printf("Another Multi-Claude Switcher tray is already running; exiting.")
-		notify("Multi-Claude Switcher is already running", "It's already in your menu bar, so this extra copy will close.")
+		notify("Multi-Claude Switcher 已经在运行", "它已经在菜单栏/托盘里了，这个多开的副本会关闭。")
 		return
 	}
 
@@ -71,7 +71,7 @@ func onReady() {
 	systray.SetTooltip("Multi-Claude Switcher")
 
 	// Profiles section
-	mProfilesHeader := systray.AddMenuItem("Available Profiles:", "")
+	mProfilesHeader := systray.AddMenuItem("可用账号：", "")
 	mProfilesHeader.Disable()
 
 	profiles, err := plat.FindProfiles()
@@ -100,8 +100,8 @@ func onReady() {
 		// Empty tooltip on the parent: on macOS the parent's tooltip pops up next
 		// to it when hovered and visually overlaps the first submenu item.
 		parent := systray.AddMenuItem(profileTitle(core.DisplayName(p.Name), getAcctType(p.Path), false), "")
-		mSwitchTo := parent.AddSubMenuItem("Switch to this profile", fmt.Sprintf("Switch the active profile to %s", p.Name))
-		mRenameTo := parent.AddSubMenuItem("Rename…", "Give this profile a friendlier display name")
+		mSwitchTo := parent.AddSubMenuItem("切换到这个账号", fmt.Sprintf("把当前账号切换到 %s", p.Name))
+		mRenameTo := parent.AddSubMenuItem("改名…", "给这个账号起个好记的显示名称")
 		profileItems[parent] = p
 		profileMenus = append(profileMenus, profileMenu{info: p, parent: parent, mSwitch: mSwitchTo, mRename: mRenameTo})
 	}
@@ -110,15 +110,15 @@ func onReady() {
 	// (the standalone build's profiles are ordinary sibling data dirs).
 	var mNewProfile *systray.MenuItem
 	if newProfileSupported() {
-		mNewProfile = systray.AddMenuItem(newProfileMenuLabel(), "Add another Claude account you can switch to")
+		mNewProfile = systray.AddMenuItem(newProfileMenuLabel(), "添加另一个可以切换的 Claude 账号")
 	}
 
 	systray.AddSeparator()
 
 	// Manual sync + its auto-mode toggle live in one submenu. Auto Sync sits at
 	// the top of the submenu, above the manual "From … → To …" directions.
-	mSync := systray.AddMenuItem("Sync sessions", "Copy one account's sessions into another (without switching accounts)")
-	mAutoSync := mSync.AddSubMenuItemCheckbox("Auto Sync on Switch", "Sync both accounts automatically on every switch", core.AutoSyncOnSwitch())
+	mSync := systray.AddMenuItem("同步对话", "把一个账号的对话复制到另一个（不切换账号）")
+	mAutoSync := mSync.AddSubMenuItemCheckbox("切换时自动同步", "每次切换时自动同步两个账号", core.AutoSyncOnSwitch())
 	type alignPair struct{ src, dst *platform.ProfileInfo }
 	alignItems := map[*systray.MenuItem]alignPair{}
 	var shown []*platform.ProfileInfo
@@ -142,7 +142,7 @@ func onReady() {
 				continue
 			}
 			label := fmt.Sprintf("From %s → To %s", core.DisplayName(a.Name), core.DisplayName(b.Name))
-			child := mSync.AddSubMenuItem(label, "Copy the first account's sessions into the second")
+			child := mSync.AddSubMenuItem(label, "把第一个账号的对话复制到第二个")
 			alignItems[child] = alignPair{src: a, dst: b}
 		}
 	}
@@ -164,19 +164,19 @@ func onReady() {
 
 	// Settings submenu
 	mSettings := systray.AddMenuItem("Settings", "Preferences")
-	mLogin := mSettings.AddSubMenuItemCheckbox("Start at Login", "Launch automatically when you log in", core.LoginItemEnabled())
+	mLogin := mSettings.AddSubMenuItemCheckbox("开机自启动", "登录系统时自动启动", core.LoginItemEnabled())
 
 	// Maintenance submenu
 	mMaint := systray.AddMenuItem("Maintenance", "Backups, logs, updates")
-	mBackup := mMaint.AddSubMenuItem("Backup All Profiles", "Take a snapshot backup of all profiles")
-	mOpenBackups := mMaint.AddSubMenuItem("Open Backup Directory", fmt.Sprintf("Open backup folder in %s", fileManagerName()))
-	mOpenLogs := mMaint.AddSubMenuItem("Open Log Folder", fmt.Sprintf("Open the log folder in %s", fileManagerName()))
-	mUpdate := mMaint.AddSubMenuItem("Check for Updates…", "Check GitHub for a newer version and update")
-	mRescan := mMaint.AddSubMenuItem("Rescan accounts…", "Scan for Claude accounts and choose which to manage")
+	mBackup := mMaint.AddSubMenuItem("备份所有账号", "给所有账号做一次快照备份")
+	mOpenBackups := mMaint.AddSubMenuItem("打开备份文件夹", fmt.Sprintf("在%s中打开备份文件夹", fileManagerName()))
+	mOpenLogs := mMaint.AddSubMenuItem("打开日志文件夹", fmt.Sprintf("在%s中打开日志文件夹", fileManagerName()))
+	mUpdate := mMaint.AddSubMenuItem("检查更新…", "在 GitHub 上检查新版本并更新")
+	mRescan := mMaint.AddSubMenuItem("重新扫描账号…", "扫描 Claude 账号并选择要管理哪些")
 
 	systray.AddSeparator()
-	mAbout := systray.AddMenuItem("About", "About Multi-Claude Switcher")
-	mQuit := systray.AddMenuItem("Quit", "Quit Multi-Claude Switcher Tray")
+	mAbout := systray.AddMenuItem("关于", "关于 Multi-Claude Switcher")
+	mQuit := systray.AddMenuItem("退出", "退出 Multi-Claude Switcher")
 
 	// Handle menu item events in goroutines
 	for _, pm := range profileMenus {
@@ -198,7 +198,7 @@ func onReady() {
 				err := switcher.SafeSwitch(srcPath, target.Path, target.Name)
 				if err != nil {
 					log.Printf("Switch error: %v", err)
-					notify("Switch failed", err.Error())
+					notify("切换失败", err.Error())
 				} else {
 					// We just launched the target, so mark it active immediately
 					// (before the new process is even detectable by `ps`).
@@ -235,11 +235,11 @@ func onReady() {
 				report, err := switcher.ManualAlign(pr.src.Path, pr.dst.Path)
 				if err != nil {
 					log.Printf("Manual align error: %v", err)
-					notify("Align failed", err.Error())
+					notify("同步失败", err.Error())
 					continue
 				}
 				log.Printf("Align %s -> %s: %d copied, %d skipped, %d conflict(s).", pr.src.Name, pr.dst.Name, report.CopiedCount, report.SkippedCount, report.ConflictCount)
-				notify("Align complete", fmt.Sprintf("%d copied, %d skipped, %d conflict(s).", report.CopiedCount, report.SkippedCount, report.ConflictCount))
+				notify("同步完成", fmt.Sprintf("复制 %d 个，跳过 %d 个，冲突 %d 个。", report.CopiedCount, report.SkippedCount, report.ConflictCount))
 			}
 		}(item, pair)
 	}
@@ -403,13 +403,13 @@ func relaunchSelf() {
 // it, and refreshes the menu labels (preserving the current-profile marker).
 // It acts directly on the passed-in profile, so no picker dialog is needed.
 func renameProfile(p *platform.ProfileInfo, items map[*systray.MenuItem]*platform.ProfileInfo) {
-	newName := askText(fmt.Sprintf("New display name for %q:", p.Name), core.DisplayName(p.Name))
+	newName := askText(fmt.Sprintf("%q 的新显示名称：", p.Name), core.DisplayName(p.Name))
 	if newName == "" {
 		return // cancelled or empty
 	}
 	if err := core.SetProfileName(p.Name, newName); err != nil {
 		log.Printf("Rename failed: %v", err)
-		notify("Rename failed", err.Error())
+		notify("改名失败", err.Error())
 		return
 	}
 	log.Printf("Renamed profile %s -> %q", p.Name, newName)
@@ -425,7 +425,7 @@ func toggleLoginItem(m *systray.MenuItem) {
 	if core.LoginItemEnabled() {
 		if err := core.DisableLoginItem(); err != nil {
 			log.Printf("Disable login item failed: %v", err)
-			notify("Couldn't update Start at Login", err.Error())
+			notify("无法更改开机自启动", err.Error())
 			return
 		}
 		m.Uncheck()
@@ -436,7 +436,7 @@ func toggleLoginItem(m *systray.MenuItem) {
 	exe, err := os.Executable()
 	if err != nil {
 		log.Printf("Cannot resolve executable for login item: %v", err)
-		notify("Couldn't update Start at Login", err.Error())
+		notify("无法更改开机自启动", err.Error())
 		return
 	}
 	if resolved, rerr := filepath.EvalSymlinks(exe); rerr == nil {
@@ -444,7 +444,7 @@ func toggleLoginItem(m *systray.MenuItem) {
 	}
 	if err := core.EnableLoginItem(exe); err != nil {
 		log.Printf("Enable login item failed: %v", err)
-		notify("Couldn't update Start at Login", err.Error())
+		notify("无法更改开机自启动", err.Error())
 		return
 	}
 	m.Check()
@@ -454,27 +454,27 @@ func toggleLoginItem(m *systray.MenuItem) {
 // confirmSwitch asks the user to confirm a switch. Returns true only on explicit
 // confirmation, so a mis-click never kills a running Claude session.
 func confirmSwitch(targetName string) bool {
-	msg := fmt.Sprintf("Switch to %q? Claude Desktop will be closed and reopened with this profile.", targetName)
-	return confirmDialog(msg, "Switch")
+	msg := fmt.Sprintf("切换到 %q？Claude Desktop 会关闭，然后用这个账号重新打开。", targetName)
+	return confirmDialog(msg, "切换")
 }
 
 // confirmAlign asks before a manual align, which closes and reopens Claude
 // Desktop on the SAME account (it copies data, it does not switch accounts).
 func confirmAlign(src, dst string) bool {
-	msg := fmt.Sprintf("Copy %q's sessions into %q? Claude Desktop will be closed, synced, and reopened on the account you're using now.", src, dst)
-	return confirmDialog(msg, "Sync")
+	msg := fmt.Sprintf("把 %q 的对话复制到 %q？Claude Desktop 会关闭、同步，然后在你当前的账号上重新打开。", src, dst)
+	return confirmDialog(msg, "同步")
 }
 
 // showAbout displays a small About dialog with the app name, version, and link.
 func showAbout() {
 	lines := []string{
 		"Multi-Claude Switcher",
-		"Version " + core.Version,
+		"版本 " + core.Version,
 		"",
-		"Seamless multi-account switcher for Claude Desktop.",
+		"Claude Desktop 多账号无缝切换工具。",
 		"github.com/Myname124/multi-claude-switcher",
 	}
-	infoDialog("About Multi-Claude Switcher", strings.Join(lines, "\n"))
+	infoDialog("关于 Multi-Claude Switcher", strings.Join(lines, "\n"))
 }
 
 func getSourceProfilePath(targetPath string, profiles []*platform.ProfileInfo) string {

@@ -24,7 +24,7 @@ type UsageVM struct {
 // UsageBarVM is one window, ready to draw.
 type UsageBarVM struct {
 	Percent int
-	// Resets is "resets 15:00" or "resets Mon 09:00", empty when unknown.
+	// Resets is "15:00 重置" or "周一 09:00 重置", empty when unknown.
 	Resets string
 }
 
@@ -73,11 +73,11 @@ func usageVM(e usage.Entry, now time.Time) *UsageVM {
 	}
 	switch {
 	case e.Err != "" && e.Usage != nil:
-		vm.Note = "As of " + clock(e.FetchedAt, now) + ". " + e.Err
+		vm.Note = clock(e.FetchedAt, now) + " 时的数据。" + e.Err
 	case e.Err != "":
 		vm.Note = e.Err
 	case e.Usage != nil && now.Sub(e.FetchedAt) > staleAfter:
-		vm.Note = "As of " + clock(e.FetchedAt, now) + "."
+		vm.Note = clock(e.FetchedAt, now) + " 时的数据。"
 	}
 	if vm.FiveHour == nil && vm.Week == nil && vm.Note == "" {
 		return nil
@@ -92,10 +92,13 @@ func barVM(w *usage.Window, now time.Time) *UsageBarVM {
 	eff := w.Effective(now)
 	out := &UsageBarVM{Percent: int(math.Round(eff.Percent))}
 	if !eff.ResetsAt.IsZero() {
-		out.Resets = "resets " + clock(eff.ResetsAt, now)
+		out.Resets = clock(eff.ResetsAt, now) + " 重置"
 	}
 	return out
 }
+
+// weekdays are the short Chinese day names, indexed by time.Weekday.
+var weekdays = [...]string{"周日", "周一", "周二", "周三", "周四", "周五", "周六"}
 
 // clock is a time as the panel writes it: "15:00" within a day of now, else
 // with the weekday, else with the date.
@@ -109,9 +112,9 @@ func clock(t, now time.Time) string {
 	case d < 20*time.Hour:
 		return t.Format("15:04")
 	case d < 6*24*time.Hour:
-		return t.Format("Mon 15:04")
+		return weekdays[t.Weekday()] + " " + t.Format("15:04")
 	default:
-		return t.Format("Jan 2")
+		return t.Format("1月2日")
 	}
 }
 
@@ -142,8 +145,8 @@ func usageBlock(u *UsageVM) string {
 		fmt.Fprintf(&b, `<div class="urow"><span class="ulabel">%s</span><span class="ubar"><i class="%s" style="width:%d%%"></i></span><span class="upct">%d%%</span><span class="ureset">%s</span></div>`,
 			label, usageLevel(bar.Percent), bar.Percent, bar.Percent, html.EscapeString(bar.Resets))
 	}
-	row("5h", u.FiveHour)
-	row("Week", u.Week)
+	row("5小时", u.FiveHour)
+	row("本周", u.Week)
 	if u.Note != "" {
 		b.WriteString(`<div class="unote">` + html.EscapeString(u.Note) + `</div>`)
 	}

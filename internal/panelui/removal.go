@@ -32,7 +32,7 @@ func DecideRemovalOutcome(folder, name string, convos int, dest string, err erro
 		// A clean removal: the row disappearing from the list is the
 		// confirmation. Routing to its own result screen bought a fourth click
 		// on Done for nothing the list banner cannot already say.
-		return RemovalOutcome{ShowList: true, ListStatus: name + " removed. Nothing was deleted."}
+		return RemovalOutcome{ShowList: true, ListStatus: name + " 已移除。没有删除任何东西。"}
 	case dest != "":
 		// The folder moved but a registry write afterward failed — a partial
 		// success, not the "nothing was moved" screen, which would send the
@@ -52,7 +52,7 @@ func DecideRemovalOutcome(folder, name string, convos int, dest string, err erro
 		// elsewhere in this file's history: that one at least carried a
 		// message saying what went wrong. A generic message is the fallback,
 		// not a crash.
-		msg := "The removal failed, and no reason was given. Try again."
+		msg := "移除失败，没有给出原因。请再试一次。"
 		if err != nil {
 			msg = err.Error()
 		}

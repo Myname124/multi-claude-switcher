@@ -16,7 +16,7 @@ func TestDecideRemovalOutcomeCleanRemoval(t *testing.T) {
 	if !out.ShowList {
 		t.Fatalf("a clean removal must show the list, not a result screen: %+v", out)
 	}
-	if out.ListStatus != "Old one removed. Nothing was deleted." {
+	if out.ListStatus != "Old one 已移除。没有删除任何东西。" {
 		t.Fatalf("unexpected list status: %q", out.ListStatus)
 	}
 	if out.Removed != (RemovedVM{}) {
@@ -74,7 +74,7 @@ func TestDecideRemovalOutcomeDidNotMoveWithNoError(t *testing.T) {
 	if out.Removed.Err == "" {
 		t.Fatal("a nil err must still produce a non-empty, readable Err, not an empty string")
 	}
-	want := RemovedVM{Folder: "Claude_Old", Name: "Old one", Convos: 34, Err: "The removal failed, and no reason was given. Try again."}
+	want := RemovedVM{Folder: "Claude_Old", Name: "Old one", Convos: 34, Err: "移除失败，没有给出原因。请再试一次。"}
 	if out.Removed != want {
 		t.Fatalf("got %+v, want %+v", out.Removed, want)
 	}

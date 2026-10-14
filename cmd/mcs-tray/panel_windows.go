@@ -511,7 +511,7 @@ func dispatchAction(action, arg string) {
 		// back the one piece of residue the design calls out as felt by the user,
 		// since a later profile reusing the identity inherits it.
 		if panelGetBusy() {
-			panelSetStatus("Busy right now. Try the rename again in a moment.")
+			panelSetStatus("现在正忙，请稍后再改名。")
 			go reloadPanel()
 			return
 		}
@@ -522,7 +522,7 @@ func dispatchAction(action, arg string) {
 			// been pressed.
 			if err := core.SetProfileName(pair[0], pair[1]); err != nil {
 				log.Printf("rename %s: %v", pair[0], err)
-				panelSetStatus("Could not rename: " + err.Error())
+				panelSetStatus("改名失败：" + err.Error())
 			}
 		}
 		panelState.SetView("list")
@@ -543,7 +543,7 @@ func dispatchAction(action, arg string) {
 		// panelGetDebugComment(). Staying on the current view with a busy banner
 		// keeps the comment box off screen until there is a finished report to
 		// show next to it.
-		panelSetBusy(true, "Gathering debug info…")
+		panelSetBusy(true, "正在收集调试信息…")
 		reloadPanel()
 		go func() {
 			report, m := panelDebugReport()
@@ -560,7 +560,7 @@ func dispatchAction(action, arg string) {
 		}
 		panelSetDebugComment(arg)
 		report, m := getPanelDebugReportCache()
-		panelSetBusy(true, "Copying report…")
+		panelSetBusy(true, "正在复制报告…")
 		reloadPanel()
 		go func() {
 			full := diagnostics.AppendComment(report, arg, m)
@@ -569,7 +569,7 @@ func dispatchAction(action, arg string) {
 				// worse than no browser at all. The comment is left in place too —
 				// this is exactly the moment the user still needs it, to retry Copy
 				// or Report a problem once whatever broke clip.Set is fixed.
-				panelSetBusy(false, "Couldn't copy the report: "+err.Error())
+				panelSetBusy(false, "复制报告失败："+err.Error())
 				reloadPanel()
 				return
 			}
@@ -579,7 +579,7 @@ func dispatchAction(action, arg string) {
 			// entry, means a stale "still happening" does not sit in the box the
 			// next time something unrelated goes wrong.
 			panelSetDebugComment("")
-			panelSetBusy(false, "Report copied. Paste it into the issue.")
+			panelSetBusy(false, "报告已复制，请粘贴到 issue 里。")
 			reloadPanel()
 		}()
 	case "copyDebug":
@@ -624,7 +624,7 @@ func dispatchAction(action, arg string) {
 		// checkForUpdate(false) answers every case — up to date, failed,
 		// unavailable, or "update now?" — in a dialog in front of other windows.
 		notifyTray("MCS_CHECK_UPDATES")
-		panelSetStatus("Checking for updates… the answer will pop up in a moment.")
+		panelSetStatus("正在检查更新…结果稍后会弹出来。")
 		reloadPanel()
 	case "fitHeight":
 		// arg is "<content bottom>,<inner height>" in CSS pixels, from the
@@ -680,7 +680,7 @@ func dispatchAction(action, arg string) {
 		}
 		row, ok := ghostRow(arg)
 		if !ok || !row.Recoverable {
-			panelSetStatus("That account is no longer recoverable. Run Rescan")
+			panelSetStatus("这个账号已经无法恢复。请重新扫描")
 			panelState.SetView("list")
 			go reloadPanel()
 			return
@@ -716,7 +716,7 @@ func dispatchAction(action, arg string) {
 				// sources' paths must come from the scan current at the moment of copy.
 				row, ok := ghostRow(req.RecoverUUID)
 				if !ok || !row.Recoverable {
-					panelSetBusy(false, "That account is no longer recoverable. Run Rescan")
+					panelSetBusy(false, "这个账号已经无法恢复。请重新扫描")
 					panelState.SetView("list")
 					reloadPanel()
 					return
@@ -1059,7 +1059,7 @@ func panelDeferQuitUntilIdle() bool {
 	}
 	already := panelQuitWhenIdle
 	panelQuitWhenIdle = true
-	panelStatusMsg = "Finishing up, then quitting…"
+	panelStatusMsg = "正在收尾，然后退出…"
 	panelStatusMu.Unlock()
 	if already {
 		return true // a second click; the timer from the first is still running
@@ -1182,11 +1182,11 @@ func mergeCandidate(identity string) panelui.MergeCandidateVM {
 func mergePlanFor(keepIdentity, archiveIdentity string) (core.MergePlan, error) {
 	keepPath, archivePath := profilePathFor(keepIdentity), profilePathFor(archiveIdentity)
 	if keepPath == "" || archivePath == "" {
-		return core.MergePlan{}, fmt.Errorf("one of those profiles is no longer there. Run Rescan")
+		return core.MergePlan{}, fmt.Errorf("其中一个账号已经不在了。请重新扫描")
 	}
 	uuid, err := platform.GetProfileAccountUUID(keepPath)
 	if err != nil {
-		return core.MergePlan{}, fmt.Errorf("%s has no account signed in", core.DisplayName(keepIdentity))
+		return core.MergePlan{}, fmt.Errorf("%s 没有登录账号", core.DisplayName(keepIdentity))
 	}
 	plan, err := core.MergePreview(keepPath, archivePath, uuid)
 	if err != nil {
@@ -1241,7 +1241,7 @@ func panelCachedPlan(path string) string {
 // found out later, from an account list that had gone strange. Report it.
 func doSwitchPanel(folder string) error {
 	if folder == "" {
-		return fmt.Errorf("No account was named")
+		return fmt.Errorf("没有指定账号")
 	}
 	profiles := panelMustFindProfiles()
 	var target *platform.ProfileInfo
@@ -1252,7 +1252,7 @@ func doSwitchPanel(folder string) error {
 		}
 	}
 	if target == nil {
-		return fmt.Errorf("That account is no longer there. Run Rescan")
+		return fmt.Errorf("那个账号已经不在了。请重新扫描")
 	}
 	return panelSwitcher.SafeSwitch(panelSourceProfilePath(target.Path, profiles), target.Path, target.Name)
 }
@@ -1294,7 +1294,7 @@ func doSyncPanel(fromFolder, toFolder string) *panelui.ProgressVM {
 	from := panelFolderPath(fromFolder)
 	to := panelFolderPath(toFolder)
 	if from == "" || to == "" {
-		return panelui.SyncOutcome("", nil, fmt.Errorf("that account is no longer there. Run Rescan"))
+		return panelui.SyncOutcome("", nil, fmt.Errorf("那个账号已经不在了。请重新扫描"))
 	}
 	// ManualAlign, not SyncSessions: it closes Claude Desktop before writing and
 	// reopens the profile the user was on, and it snapshots the target first.
@@ -1319,7 +1319,7 @@ func doSyncPanel(fromFolder, toFolder string) *panelui.ProgressVM {
 		// notify, not notifyTray: notifyTray's protocol is a fixed set of literal
 		// keywords the tray switches on, so it cannot carry text. notify spawns its
 		// own toast and works from any process, panel included.
-		notify("Some conversations were skipped", core.SyncResultMessage(rep, core.DisplayName(toFolder)))
+		notify("有些对话被跳过了", core.SyncResultMessage(rep, core.DisplayName(toFolder)))
 	}
 	return panelui.SyncOutcome(core.DisplayName(toFolder), rep, nil)
 }
@@ -1822,12 +1822,11 @@ func panelWndProc(hwnd uintptr, msg uint32, wparam, lparam uintptr) uintptr {
 // showRuntimeMissingDialog surfaces a native MessageBox when WebView2 runtime
 // is absent, and opens the Microsoft install page in the default browser.
 func showRuntimeMissingDialog(cause error) {
-	msg := "The Multi-Claude Switcher panel needs the Microsoft WebView2 " +
-		"Runtime, which is not installed.\n\nClick OK to open the Microsoft " +
-		"download page in your browser. Rerun Multi-Claude Switcher after " +
-		"installing.\n\n(" + cause.Error() + ")"
+	msg := "Multi-Claude Switcher 的面板需要 Microsoft WebView2 运行库，" +
+		"但这台电脑没有安装。\n\n点「确定」会在浏览器里打开 Microsoft 的下载页面。" +
+		"安装后请重新运行 Multi-Claude Switcher。\n\n(" + cause.Error() + ")"
 	msgw, _ := syscall.UTF16PtrFromString(msg)
-	titlew, _ := syscall.UTF16PtrFromString("Multi-Claude Switcher: WebView2 Runtime missing")
+	titlew, _ := syscall.UTF16PtrFromString("Multi-Claude Switcher：缺少 WebView2 运行库")
 	const mbOK = 0x00000000
 	const mbIconInfo = 0x00000040
 	messageBox := user32.NewProc("MessageBoxW")

@@ -30,10 +30,10 @@ const reservedProfileName = "Claude"
 func ValidateProfileName(name string) (string, error) {
 	name = strings.TrimSpace(name)
 	if name == "" {
-		return "", errors.New("enter a name for this account")
+		return "", errors.New("请给这个账号起个名字")
 	}
 	if strings.EqualFold(name, reservedProfileName) {
-		return "", fmt.Errorf("%q is taken by the default profile, pick another name", reservedProfileName)
+		return "", fmt.Errorf("%q 已被默认配置使用，请换一个名字", reservedProfileName)
 	}
 	// Allow letters, digits, space, dash, underscore. Everything else is either a
 	// path separator, a Windows-illegal filename character, or a control
@@ -49,7 +49,7 @@ func ValidateProfileName(name string) (string, error) {
 		case r >= 'a' && r <= 'z', r >= 'A' && r <= 'Z', r >= '0' && r <= '9':
 		case r == ' ', r == '-', r == '_':
 		default:
-			return "", errors.New("use only letters, numbers, spaces, dashes and underscores")
+			return "", errors.New("只能使用字母、数字、空格、连字符和下划线")
 		}
 	}
 	return name, nil

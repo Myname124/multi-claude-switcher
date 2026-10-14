@@ -10,7 +10,7 @@ func notify(title, text string) {}
 
 func openFolder(path string) {}
 
-func fileManagerName() string { return "your file manager" }
+func fileManagerName() string { return "文件管理器" }
 
 func chooseFromList(options []string, prompt string) string { return "" }
 

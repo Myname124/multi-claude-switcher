@@ -95,9 +95,9 @@ func installUpdate(url, tag string, _ bool) error {
 	}
 	if err := cmd.Start(); err != nil {
 		// The new binary is already swapped in; only the auto-relaunch failed.
-		return fmt.Errorf("update installed but relaunch failed (please reopen the app to use it): %w", err)
+		return fmt.Errorf("更新已安装，但重新启动失败（请手动重新打开 app）：%w", err)
 	}
-	notify("Updated", "Restarting on the new version.")
+	notify("已更新", "正在以新版本重新启动。")
 	systray.Quit()
 	return nil
 }

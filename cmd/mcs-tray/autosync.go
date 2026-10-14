@@ -30,7 +30,7 @@ func shouldWarnAutoSync(enabling, dismissed bool) bool {
 // them under the source's organization, which the target never reads. Import
 // into a Team account works, so the caveat is gone rather than reworded.
 func autoSyncWarningMessage() string {
-	return "With this on, every account switch bidirectionally syncs: both accounts' conversations will merge. Enable?"
+	return "开启后，每次切换账号都会双向同步：两个账号的对话会合并。要开启吗？"
 }
 
 // askEnableAutoSync shows the enable-time warning and returns the user's choice.
@@ -44,7 +44,7 @@ func toggleAutoSync(m *systray.MenuItem) {
 	if core.AutoSyncOnSwitch() {
 		if err := core.SetAutoSyncOnSwitch(false); err != nil {
 			log.Printf("Disable auto sync failed: %v", err)
-			notify("Couldn't update Auto Sync", err.Error())
+			notify("无法更改自动同步", err.Error())
 			return
 		}
 		m.Uncheck()
@@ -68,7 +68,7 @@ func toggleAutoSync(m *systray.MenuItem) {
 
 	if err := core.SetAutoSyncOnSwitch(true); err != nil {
 		log.Printf("Enable auto sync failed: %v", err)
-		notify("Couldn't update Auto Sync", err.Error())
+		notify("无法更改自动同步", err.Error())
 		return
 	}
 	m.Check()

@@ -18,7 +18,7 @@ func runRescan() {
 		return
 	}
 	if err := core.SetManaged(folders); err != nil {
-		notify("Rescan failed", err.Error())
+		notify("重新扫描失败", err.Error())
 		return
 	}
 	relaunchSelf()

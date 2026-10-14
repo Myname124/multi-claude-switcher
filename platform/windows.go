@@ -754,7 +754,7 @@ func (w *WindowsPlatform) PrepareRemove(identity string) (string, error) {
 		return "", fmt.Errorf("Store Claude Desktop data directory not found")
 	}
 	if !msixStateRecorded(roaming) {
-		return "", fmt.Errorf("MCS has not set up switching on this install yet, so it cannot tell which account is in use. Run Rescan first")
+		return "", fmt.Errorf("MCS 还没在这个安装上设置好切换，无法判断正在用哪个账号。请先重新扫描")
 	}
 	if msixIsSlotOccupant(roaming, identity) {
 		return "", fmt.Errorf("%q is the account in use. Switch to another account first, then remove it", identity)

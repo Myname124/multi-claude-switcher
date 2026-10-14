@@ -155,7 +155,7 @@ func deferQuitUntilIdle() bool {
 	}
 	already := quitWhenIdle
 	quitWhenIdle = true
-	statusMsg = "Finishing up, then quitting…"
+	statusMsg = "正在收尾，然后退出…"
 	statusMu.Unlock()
 	if already {
 		return true // a second click; the timer from the first is still running
@@ -407,7 +407,7 @@ func goPanelAction(caction, cfolder *C.char) {
 		// back the one piece of residue the design calls out as felt by the user,
 		// since a later profile reusing the identity inherits it.
 		if getBusy() {
-			setStatus("Busy right now. Try the rename again in a moment.")
+			setStatus("现在正忙，请稍后再改名。")
 			go reloadPanel()
 			return
 		}
@@ -417,7 +417,7 @@ func goPanelAction(caction, cfolder *C.char) {
 			// reason given; the list now says why.
 			if err := core.SetProfileName(pair[0], pair[1]); err != nil {
 				log.Printf("rename %s: %v", pair[0], err)
-				setStatus("Could not rename: " + err.Error())
+				setStatus("改名失败：" + err.Error())
 			}
 		}
 		panelState.SetView("list")
@@ -439,7 +439,7 @@ func goPanelAction(caction, cfolder *C.char) {
 		}
 		row, ok := ghostRow(arg)
 		if !ok || !row.Recoverable {
-			setStatus("That account is no longer recoverable. Run Rescan")
+			setStatus("这个账号已经无法恢复。请重新扫描")
 			panelState.SetView("list")
 			go reloadPanel()
 			return
@@ -473,7 +473,7 @@ func goPanelAction(caction, cfolder *C.char) {
 				// sources' paths must come from the scan current at the moment of copy.
 				row, ok := ghostRow(req.RecoverUUID)
 				if !ok || !row.Recoverable {
-					setBusyStatus(false, "That account is no longer recoverable. Run Rescan")
+					setBusyStatus(false, "这个账号已经无法恢复。请重新扫描")
 					panelState.SetView("list")
 					reloadPanel()
 					return
@@ -592,7 +592,7 @@ func goPanelAction(caction, cfolder *C.char) {
 		// getDebugComment(). Staying on the current view with a busy banner
 		// keeps the comment box off screen until there is a finished report to
 		// show next to it.
-		setBusyStatus(true, "Gathering debug info…")
+		setBusyStatus(true, "正在收集调试信息…")
 		reloadPanel()
 		go func() {
 			report, m := debugReport()
@@ -609,7 +609,7 @@ func goPanelAction(caction, cfolder *C.char) {
 		}
 		setDebugComment(arg)
 		report, m := getDebugReportCache()
-		setBusyStatus(true, "Copying report…")
+		setBusyStatus(true, "正在复制报告…")
 		reloadPanel()
 		go func() {
 			full := diagnostics.AppendComment(report, arg, m)
@@ -618,7 +618,7 @@ func goPanelAction(caction, cfolder *C.char) {
 				// worse than no browser at all. The comment is left in place too —
 				// this is exactly the moment the user still needs it, to retry Copy
 				// or Report a problem once whatever broke clip.Set is fixed.
-				setBusyStatus(false, "Couldn't copy the report: "+err.Error())
+				setBusyStatus(false, "复制报告失败："+err.Error())
 				reloadPanel()
 				return
 			}
@@ -628,7 +628,7 @@ func goPanelAction(caction, cfolder *C.char) {
 			// entry, means a stale "still happening" does not sit in the box the
 			// next time something unrelated goes wrong.
 			setDebugComment("")
-			setBusyStatus(false, "Report copied. Paste it into the issue.")
+			setBusyStatus(false, "报告已复制，请粘贴到 issue 里。")
 			reloadPanel()
 		}()
 	case "copyDebug":
@@ -660,7 +660,7 @@ func goPanelAction(caction, cfolder *C.char) {
 		if getBusy() {
 			return
 		}
-		setBusyStatus(true, "Checking for updates…")
+		setBusyStatus(true, "正在检查更新…")
 		reloadPanel()
 		go manualCheckAndInstall()
 	case "fitHeight":
@@ -765,7 +765,7 @@ func folderPath(folder string) string {
 func doSync(fromFolder, toFolder string) *panelui.ProgressVM {
 	from, to := folderPath(fromFolder), folderPath(toFolder)
 	if from == "" || to == "" {
-		return panelui.SyncOutcome("", nil, fmt.Errorf("that account is no longer there. Run Rescan"))
+		return panelui.SyncOutcome("", nil, fmt.Errorf("那个账号已经不在了。请重新扫描"))
 	}
 	// ManualAlign, not SyncSessions: it closes Claude Desktop before writing and
 	// reopens the profile the user was on, and it snapshots the target first.
@@ -786,7 +786,7 @@ func doSync(fromFolder, toFolder string) *panelui.ProgressVM {
 		// reaches a user who has already walked away from the panel. Files that
 		// could not be read are the one outcome worth that: a conflict is not,
 		// it only means the target's copy was already newer, which is ordinary.
-		notify("Some conversations were skipped", core.SyncResultMessage(rep, core.DisplayName(toFolder)))
+		notify("有些对话被跳过了", core.SyncResultMessage(rep, core.DisplayName(toFolder)))
 	}
 	return panelui.SyncOutcome(core.DisplayName(toFolder), rep, nil)
 }
@@ -952,7 +952,7 @@ func doSwitch(folder string) error {
 		// Capitalised on purpose, here and below: these are not wrapped by
 		// anything, they are printed verbatim as the one sentence under the
 		// card's heading. ST1005 disagrees; the user reads the screen.
-		return fmt.Errorf("No account was named")
+		return fmt.Errorf("没有指定账号")
 	}
 	profiles := mustFindProfiles()
 	var target *platform.ProfileInfo
@@ -963,7 +963,7 @@ func doSwitch(folder string) error {
 		}
 	}
 	if target == nil {
-		return fmt.Errorf("That account is no longer there. Run Rescan")
+		return fmt.Errorf("那个账号已经不在了。请重新扫描")
 	}
 	return switcher.SafeSwitch(sourceProfilePath(target.Path, profiles), target.Path, target.Name)
 }
@@ -1056,11 +1056,11 @@ func mergeCandidate(identity string) panelui.MergeCandidateVM {
 func mergePlanFor(keepIdentity, archiveIdentity string) (core.MergePlan, error) {
 	keepPath, archivePath := profilePathFor(keepIdentity), profilePathFor(archiveIdentity)
 	if keepPath == "" || archivePath == "" {
-		return core.MergePlan{}, fmt.Errorf("one of those profiles is no longer there. Run Rescan")
+		return core.MergePlan{}, fmt.Errorf("其中一个账号已经不在了。请重新扫描")
 	}
 	uuid, err := platform.GetProfileAccountUUID(keepPath)
 	if err != nil {
-		return core.MergePlan{}, fmt.Errorf("%s has no account signed in", core.DisplayName(keepIdentity))
+		return core.MergePlan{}, fmt.Errorf("%s 没有登录账号", core.DisplayName(keepIdentity))
 	}
 	plan, err := core.MergePreview(keepPath, archivePath, uuid)
 	if err != nil {

@@ -251,10 +251,10 @@ func TestEmDashGuardCoversTheFourDialogHelpers(t *testing.T) {
 	debug := RenderDebug(DebugVM{Report: "MCS 0.11.2"})
 
 	cases := []struct{ name, html, from, to string }{
-		{"askSwitch", list, "Claude closes and reopens signed in as", "Claude — closes and reopens signed in as"},
-		{"askSync", list, "then Claude reopens where you were", "then Claude — reopens where you were"},
-		{"askReport", debug, "GitHub issues are public", "GitHub — issues are public"},
-		{"askRemove", list, "It comes off your list", "It — comes off your list"},
+		{"askSwitch", list, "Claude 会关闭，然后以", "Claude 会关闭 — 然后以"},
+		{"askSync", list, "然后 Claude 会回到你原来的账号重新打开", "然后 Claude — 会回到你原来的账号重新打开"},
+		{"askReport", debug, "GitHub issue 是公开的", "GitHub issue — 是公开的"},
+		{"askRemove", list, "它会从列表中移除", "它会 — 从列表中移除"},
 	}
 	for _, c := range cases {
 		if !strings.Contains(c.html, c.from) {

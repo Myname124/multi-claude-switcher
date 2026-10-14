@@ -33,7 +33,7 @@ left. Enough friction that most people stop bothering.
 3. **Histories stay separate.** Each account's Code conversations are left
    exactly as they were. A plain switch never touches session data at all.
 
-<img src="docs/assets/panel.png" width="400" alt="The panel listing three accounts, each with its 5-hour and weekly usage bars: Work on a Team plan marked as the current account, Personal on Max 20×, and Side project on Pro, above Rescan and Settings buttons" />
+<img src="docs/assets/panel.png" width="400" alt="The panel, in Simplified Chinese, listing three accounts with their 5-hour and weekly usage bars: 工作 (work) on a Team plan marked as in use, 个人 (personal) on Max 20×, and 副业项目 (side project) on Pro, above the Rescan and Settings buttons" />
 
 ---
 
@@ -88,6 +88,19 @@ so. "Check for updates" at the bottom of the panel always answers: it says you
 are up to date, or installs the new version right away.
 
 ## Using it
+
+> **Language.** In this fork the panel is in Simplified Chinese. This README
+> keeps the English names; the labels you will see are:
+>
+> | English | 面板上 | English | 面板上 |
+> |---|---|---|---|
+> | Rescan | 重新扫描 | Settings | 设置 |
+> | Change name | 改名 | Remove from list | 从列表移除 |
+> | More | 更多 | Sync between accounts | 在账号之间同步 |
+> | Back up all accounts | 备份所有账号 | Open backup folder | 打开备份文件夹 |
+> | Report a bug / Report a problem | 报告问题 | Check for updates | 检查更新 |
+> | Add another account | 添加另一个账号 | Recover | 恢复 |
+> | Quit | 退出 | 5h / Week | 5小时 / 本周 |
 
 There is no window and no Dock icon. The app is a pair-of-eyes icon in the macOS
 menu bar or the Windows system tray. Click it and the panel appears. The × in
@@ -149,7 +162,8 @@ How it gets them: each account's profile already holds the sign-in token
 Claude Desktop uses. The switcher decrypts it locally and sends it only to
 `api.anthropic.com`, which issued it. It never renews the token, because
 renewing would sign Claude Desktop out. So an account you have not opened for a
-while may say *Open this account in Claude once to refresh its usage*; until
+while may say *在 Claude 里打开一次这个账号即可刷新额度* (open this account in
+Claude once to refresh its usage); until
 then it keeps showing its last reading, and a window whose reset time has
 passed shows as 0%.
 

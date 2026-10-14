@@ -110,7 +110,7 @@ func onReadyWindowsPanel() {
 	systray.SetOnTapped(togglePanel)
 
 	// Right click keeps a single-item safety menu (see file comment).
-	mQuit := systray.AddMenuItem("Quit", "Quit Multi-Claude Switcher")
+	mQuit := systray.AddMenuItem("退出", "退出 Multi-Claude Switcher")
 
 	go func() {
 		<-mQuit.ClickedCh
@@ -172,7 +172,7 @@ func superviseWarmPanel() {
 		// not coming back on its own, so say so rather than leave the icon
 		// doing nothing.
 		if panelStartedForClick.Swap(false) && time.Since(start) < 10*time.Second {
-			notify("Multi-Claude Switcher", "The panel could not start. Quit the app from the tray icon's right-click menu and open it again.")
+			notify("Multi-Claude Switcher", "面板没能启动。请在托盘图标的右键菜单里退出，再重新打开。")
 		}
 		log.Printf("warm panel exited; restarting in %s", delay)
 		select {
@@ -267,7 +267,7 @@ func togglePanel() {
 		case panelWake <- struct{}{}:
 		default:
 		}
-		notify("Multi-Claude Switcher", "The panel is restarting and will open in a moment.")
+		notify("Multi-Claude Switcher", "面板正在重启，马上就会打开。")
 	}
 }
 

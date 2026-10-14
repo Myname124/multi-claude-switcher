@@ -66,7 +66,7 @@ func planPill(plan string) string {
 // it opens the changelog on GitHub, which is where "what changed in this
 // version" is written down.
 func versionLink(version string) string {
-	return `<button class="aboutlink" title="What's new" onclick="send('openChangelog','')">v` + html.EscapeString(version) + `</button>`
+	return `<button class="aboutlink" title="更新日志" onclick="send('openChangelog','')">v` + html.EscapeString(version) + `</button>`
 }
 
 // closeButton is the × in the top-right corner of every screen. It sends the
@@ -74,16 +74,16 @@ func versionLink(version string) string {
 // no host code: on Windows the panel is parked, on macOS the popover closes.
 // It lives in shell() rather than in each renderer so no screen can be added
 // without it.
-const closeButton = `<button class="closex" title="Close" aria-label="Close" onclick="send('hidePanel','')">×</button>`
+const closeButton = `<button class="closex" title="关闭" aria-label="关闭" onclick="send('hidePanel','')">×</button>`
 
 // shell wraps body content in the shared styled page. Every view lives in the
 // same webview — there are no separate windows on either platform.
 func shell(body string) string {
-	return `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Multi-Claude Switcher</title>
+	return `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><title>Multi-Claude Switcher</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 html{color-scheme:light}
-body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","SF Pro Text",system-ui,sans-serif;color:#241f38;
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","SF Pro Text","PingFang SC","Microsoft YaHei",system-ui,sans-serif;color:#241f38;
   background:linear-gradient(160deg,#efe9fb 0%,#f6eaf2 55%,#f9edf1 100%);padding:16px;-webkit-font-smoothing:antialiased;width:400px;overflow-x:hidden}
 .header{display:flex;align-items:center;gap:11px;margin:2px 2px 14px;padding-right:34px}
 /* The close button every screen carries in the same corner. Fixed, and above
@@ -133,7 +133,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","SF Pro Text",syste
 .pill-plan{background:#ece8fb;color:#6a4fd0}
 .usage{margin-top:6px;display:flex;flex-direction:column;gap:3px}
 .urow{display:flex;align-items:center;gap:6px;font-size:10.5px;color:#8b8598}
-.ulabel{width:30px;flex:none;font-weight:700;color:#6b6580}
+.ulabel{width:38px;flex:none;font-weight:700;color:#6b6580}
 .ubar{width:72px;flex:none;height:6px;border-radius:999px;background:#eceaf3;overflow:hidden}
 .ubar i{display:block;height:100%;border-radius:999px}
 .u-ok{background:#1fa35c}
@@ -278,12 +278,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","SF Pro Text",syste
 </style></head><body>` + closeButton + body + `
 <div class="modal-bg" id="mcsModal" onclick="if(event.target===this) closeConfirm()">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="mcsModalTitle" aria-describedby="mcsModalBody">
-    <h2 id="mcsModalTitle">Close Claude?</h2>
+    <h2 id="mcsModalTitle">关闭 Claude？</h2>
     <p id="mcsModalBody"></p>
-    <div class="warn">Anything unsaved in Claude is interrupted.</div>
+    <div class="warn">Claude 里没保存的内容会被中断。</div>
     <div class="row">
-      <button class="btn btn-light" id="mcsModalCancel" onclick="closeConfirm()">Cancel</button>
-      <button class="btn btn-primary" id="mcsModalOk" onclick="okConfirm()">Continue</button>
+      <button class="btn btn-light" id="mcsModalCancel" onclick="closeConfirm()">取消</button>
+      <button class="btn btn-primary" id="mcsModalOk" onclick="okConfirm()">继续</button>
     </div>
   </div>
 </div>
@@ -447,7 +447,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","SF Pro Text",syste
     // is falsy the same as undefined, which is exactly what askRemove now
     // needs: its confirmation says everything once, in the body, with no
     // second block repeating a warning underneath.
-    var warnText = arguments.length >= 6 ? warn : 'Anything unsaved in Claude is interrupted.';
+    var warnText = arguments.length >= 6 ? warn : 'Claude 里没保存的内容会被中断。';
     var warnEl = document.querySelector('#mcsModal .warn');
     warnEl.textContent = warnText;
     warnEl.style.display = warnText ? '' : 'none';
@@ -470,15 +470,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","SF Pro Text",syste
     (action === '' ? ok : document.getElementById('mcsModalCancel')).focus();
   }
   function askSwitch(folder, name){
-    askConfirm('switch', folder, 'Switch to '+name+'?',
-      'Claude closes and reopens signed in as '+name+'.', 'Switch');
+    askConfirm('switch', folder, '切换到 '+name+'？',
+      'Claude 会关闭，然后以 '+name+' 的身份重新打开。', '切换');
   }
   function askReport(){
     askConfirm('reportProblem', document.getElementById('dbgc').value,
-      'Open a GitHub issue?',
-      'The report above and your comment are copied to your clipboard, and your browser opens a new issue on the MCS repository. Paste it there and you can still edit it before submitting.',
-      'Copy and open',
-      'GitHub issues are public. What is copied is exactly what you saw on the screen behind this dialog, with your email address, account IDs, user name and home folder already replaced with stand-ins.');
+      '打开 GitHub issue？',
+      '上面的报告和你的说明会复制到剪贴板，浏览器会在 MCS 仓库打开一个新 issue。粘贴进去后，提交前仍然可以修改。',
+      '复制并打开',
+      'GitHub issue 是公开的。复制的内容就是这个对话框后面屏幕上显示的内容，邮箱、账号 ID、用户名和主目录都已经换成了代称。');
   }
   // The folder and name travel as data-* and are read back with dataset, never
   // interpolated into the inline handler: a name with an apostrophe would
@@ -496,8 +496,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","SF Pro Text",syste
     // so it opens an informational dialog instead of the destructive one, and
     // "Got it" just closes it.
     if (el.dataset.current === '1') {
-      askConfirm('', '', 'Claude is open on '+el.dataset.name,
-        'Switch to another account first, then you can remove it.', 'Got it', '');
+      askConfirm('', '', 'Claude 正在使用 '+el.dataset.name,
+        '先切换到别的账号，然后才能移除它。', '知道了', '');
       return;
     }
     var n = parseInt(el.dataset.convos, 10) || 0;
@@ -512,24 +512,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","SF Pro Text",syste
     // RenderRemoved (the screen after a removal) already gets this right; this
     // matches its honesty, not its wording, since this dialog asks before the
     // fact and that one reports after it.
-    var what = n === 0 ? 'It comes off your list. Nothing is deleted, and you can sign in to it again any time.'
-      : n === 1 ? 'It comes off your list. Its 1 conversation is kept, not deleted. Signing in to this account again starts a new copy of it, without that conversation.'
-      : 'It comes off your list. Its ' + n + ' conversations are kept, not deleted. Signing in to this account again starts a new copy of it, without those conversations.';
+    var what = n === 0 ? '它会从列表中移除。不会删除任何东西，以后随时可以重新登录。'
+      : '它会从列表中移除。它的 ' + n + ' 个对话会保留，不会删除。重新登录这个账号会建立一份新的副本，不包含这些对话。';
     // No warn block: the body above already says everything the warning line
     // used to repeat, so an empty string here hides it rather than falling
     // back to the shared "Anything unsaved…" line, which does not apply since
     // this dialog is not about to close Claude.
-    askConfirm('removeProfile', el.dataset.folder, 'Remove '+el.dataset.name+'?',
-      what, 'Remove', '', 'destructive');
+    askConfirm('removeProfile', el.dataset.folder, '移除 '+el.dataset.name+'？',
+      what, '移除', '', 'destructive');
   }
   // The folders arrive via data-* and are joined here, never interpolated into the
   // inline handler: a folder with an apostrophe would otherwise break the parse.
   function mergePair(a, b){ send('showMerge', a+'|'+b); }
   function askSync(from, to, fromName, toName, convos){
     var n = parseInt(convos, 10) || 0;
-    var what = n === 1 ? '1 conversation is copied' : n + ' conversations are copied';
-    askConfirm('sync', from+'|'+to, 'Sync into '+toName+'?',
-      'Claude closes, '+what+' from '+fromName+', then Claude reopens where you were.', 'Sync');
+    askConfirm('sync', from+'|'+to, '同步到 '+toName+'？',
+      'Claude 会关闭，从 '+fromName+' 复制 '+n+' 个对话过去，然后 Claude 会回到你原来的账号重新打开。', '同步');
   }
   function closeConfirm(){ _pending=null; document.getElementById('mcsModal').classList.remove('on'); }
   // An informational dialog (action==='') has nothing to send: it exists only
@@ -642,8 +640,8 @@ func duplicateAccounts(profiles []ProfileVM, esc func(string) string) (map[strin
 	// back to ' before the JS is parsed, and the handler breaks on any folder
 	// containing one.
 	warning := fmt.Sprintf(`<div class="dup">
-  <div class="dt">%s and %s are the same account. Merge them to clean this up.</div>
-  <button class="btn-sm" data-dup-a="%s" data-dup-b="%s" onclick="mergePair(this.dataset.dupA,this.dataset.dupB)">Merge</button>
+  <div class="dt">%s 和 %s 是同一个账号。合并它们就能整理好。</div>
+  <button class="btn-sm" data-dup-a="%s" data-dup-b="%s" onclick="mergePair(this.dataset.dupA,this.dataset.dupB)">合并</button>
 </div>`, esc(labelA), esc(labelB), esc(a), esc(b))
 	return dupFolder, warning
 }
@@ -674,13 +672,13 @@ func rowMenu(esc func(string) string, p ProfileVM, removable bool) string {
 	}
 	removeItem := ""
 	if removable {
-		removeItem = fmt.Sprintf(`<button type="button" role="menuitem" class="danger" data-folder="%s" data-name="%s" data-convos="%d" data-current="%s" onclick="event.stopPropagation();askRemove(this)">Remove from list</button>`,
+		removeItem = fmt.Sprintf(`<button type="button" role="menuitem" class="danger" data-folder="%s" data-name="%s" data-convos="%d" data-current="%s" onclick="event.stopPropagation();askRemove(this)">从列表移除</button>`,
 			esc(p.Folder), esc(p.Name), p.Convos, current)
 	}
 	return fmt.Sprintf(`<div class="rowmenu-wrap">
-        <button type="button" class="chevbtn" aria-label="Account options" aria-haspopup="menu" aria-expanded="false" onclick="event.stopPropagation();toggleRowMenu(this)">`+wrenchSVG+`</button>
+        <button type="button" class="chevbtn" aria-label="账号选项" aria-haspopup="menu" aria-expanded="false" onclick="event.stopPropagation();toggleRowMenu(this)">`+wrenchSVG+`</button>
         <div class="rowmenu" role="menu">
-          <button type="button" role="menuitem" onclick="event.stopPropagation();startRename(this)">Change name</button>
+          <button type="button" role="menuitem" onclick="event.stopPropagation();startRename(this)">改名</button>
           %s
         </div>
       </div>`, removeItem)
@@ -695,8 +693,8 @@ func rowMenu(esc func(string) string, p ProfileVM, removable bool) string {
 // interpolated here, so it needs no data-* attribute of its own.
 func editRow(esc func(string) string, name string) string {
 	return `<div class="editrow"><input class="rnrow" type="text" value="` + esc(name) + `" onclick="event.stopPropagation()" onkeydown="rowRenameKey(event,this)">` +
-		`<button type="button" class="rncancel" onclick="event.stopPropagation();cancelRename(this)">Cancel</button>` +
-		`<button type="button" class="rnsave" onclick="event.stopPropagation();rowRenameSave(this)">Save</button></div>`
+		`<button type="button" class="rncancel" onclick="event.stopPropagation();cancelRename(this)">取消</button>` +
+		`<button type="button" class="rnsave" onclick="event.stopPropagation();rowRenameSave(this)">保存</button></div>`
 }
 
 func RenderList(profiles []ProfileVM, canAddAccount bool, status string) string {
@@ -718,14 +716,14 @@ func RenderList(profiles []ProfileVM, canAddAccount bool, status string) string 
 		badge := planPill(p.Plan)
 		dupPill := ""
 		if dupFolder[p.Folder] {
-			dupPill = `<span class="dup-pill">Duplicate</span>`
+			dupPill = `<span class="dup-pill">重复</span>`
 		}
 		menu := rowMenu(esc, p, removable)
 		edit := editRow(esc, p.Name)
 		if p.Current {
 			cards.WriteString(fmt.Sprintf(`
       <div class="card current" data-folder="%s" data-name="%s"><div class="dotcur"></div>
-        <div class="body"><div class="viewrow row1"><span class="name">%s</span>%s%s</div><div class="sub-current viewrow">In use now</div>%s%s</div>%s</div>`,
+        <div class="body"><div class="viewrow row1"><span class="name">%s</span>%s%s</div><div class="sub-current viewrow">正在使用</div>%s%s</div>%s</div>`,
 				esc(p.Folder), esc(p.Name), esc(p.Name), badge, dupPill, usageBlock(p.Usage), edit, menu))
 			continue
 		}
@@ -737,7 +735,7 @@ func RenderList(profiles []ProfileVM, canAddAccount bool, status string) string 
 		// and "Switch to this account" under every name only repeated that.
 		sub := ""
 		if !p.SignedIn {
-			sub = `<div class="sub viewrow">Not signed in yet. Switch here, then sign in.</div>`
+			sub = `<div class="sub viewrow">还没登录。切换过来，然后登录。</div>`
 		}
 		// The card stays the switch target — clicking anywhere on it that is not
 		// the chevron or the rename input still switches — except while it is
@@ -749,20 +747,20 @@ func RenderList(profiles []ProfileVM, canAddAccount bool, status string) string 
 			esc(p.Folder), esc(p.Name), esc(p.Name), badge, dupPill, sub, usageBlock(p.Usage), edit, menu))
 	}
 	if len(profiles) == 0 {
-		cards.WriteString(`<div class="empty">No managed accounts yet. Run Rescan to add some.</div>`)
+		cards.WriteString(`<div class="empty">还没有管理任何账号。点「重新扫描」添加。</div>`)
 	}
 	if canAddAccount {
 		// In the list rather than the footer: the footer already holds Rescan and
 		// Settings, and a third labelled button does not fit in 400px without
 		// shrinking the other two to bare icons.
 		cards.WriteString(`
-      <button class="addcard" onclick="send('newProfile','')">＋&nbsp; Add another account</button>`)
+      <button class="addcard" onclick="send('newProfile','')">＋&nbsp; 添加另一个账号</button>`)
 	}
-	body := avatarHeader("Multi-Claude Switcher", "Switch or manage your Claude accounts") +
+	body := avatarHeader("Multi-Claude Switcher", "切换或管理你的 Claude 账号") +
 		statusBanner + dupWarning + `<div class="cards">` + cards.String() + `</div>
 <div class="footer">
-  <button class="btn btn-light" onclick="send('showRescan','')">⟳&nbsp; Rescan</button>
-  <button class="btn btn-light" onclick="send('showSettings','')">⚙&nbsp; Settings</button>
+  <button class="btn btn-light" onclick="send('showRescan','')">⟳&nbsp; 重新扫描</button>
+  <button class="btn btn-light" onclick="send('showSettings','')">⚙&nbsp; 设置</button>
 </div>
 <div class="about">` + versionLink(core.Version) + `</div>`
 	return shell(body)
@@ -801,28 +799,28 @@ func RenderSettings(vm SettingsVM) string {
 	// The update check is disabled while a maintenance action runs, the same as
 	// the button it used to be. As a link that means greying it and dropping the
 	// handler, since a link has no disabled attribute to honour.
-	update := `<button class="aboutlink" onclick="send('checkUpdates','')">Check for updates</button>`
+	update := `<button class="aboutlink" onclick="send('checkUpdates','')">检查更新</button>`
 	if vm.Busy {
-		update = `<button class="aboutlink" disabled>Check for updates</button>`
+		update = `<button class="aboutlink" disabled>检查更新</button>`
 	}
 	body := `<div class="header">
   <button class="back" onclick="send('showList','')">‹</button>
-  <div class="htext"><h1>Settings</h1><p>Preferences and maintenance</p></div>
+  <div class="htext"><h1>设置</h1><p>偏好与维护</p></div>
 </div>` + status + `
 <div class="slist">
-  <div class="srow"><div class="slabel"><div class="t">Auto Sync on switch</div><div class="s">Merge both accounts' Code sessions when switching</div></div>
+  <div class="srow"><div class="slabel"><div class="t">切换时自动同步</div><div class="s">切换账号时合并两边的 Code 对话</div></div>
     <div class="` + toggleClass(vm.AutoSync) + `" onclick="send('toggleAutoSync','')"></div></div>
-  <div class="srow"><div class="slabel"><div class="t">Start at login</div><div class="s">Launch Multi-Claude Switcher when you log in</div></div>
+  <div class="srow"><div class="slabel"><div class="t">开机自启动</div><div class="s">登录系统时启动 Multi-Claude Switcher</div></div>
     <div class="` + toggleClass(vm.StartLogin) + `" onclick="send('toggleLogin','')"></div></div>
-  <button class="sbtn" onclick="send('showMore','')">More<span class="navchev">›</span></button>
-  <button class="sbtn danger" onclick="send('quit','')">Quit Multi-Claude Switcher</button>
+  <button class="sbtn" onclick="send('showMore','')">更多<span class="navchev">›</span></button>
+  <button class="sbtn danger" onclick="send('quit','')">退出 Multi-Claude Switcher</button>
 </div>
 <div class="about">
   ` + versionLink(vm.Version) + `
   <span class="sep">·</span>
   ` + update + `
   <span class="sep">·</span>
-  <button class="aboutlink" onclick="send('showDebug','')">Report a bug</button>
+  <button class="aboutlink" onclick="send('showDebug','')">报告问题</button>
 </div>`
 	return shell(body)
 }
@@ -837,19 +835,19 @@ func RenderMore(vm MoreVM) string {
 	// The backup is the one thing here that takes time, so it is the one thing
 	// disabled while a maintenance action runs. The folder shortcuts and the
 	// sync screen are safe to reach at any moment.
-	backup := `<button class="sbtn" onclick="send('backup','')">Back up all accounts</button>`
+	backup := `<button class="sbtn" onclick="send('backup','')">备份所有账号</button>`
 	if vm.Busy {
-		backup = `<button class="sbtn" disabled>Back up all accounts</button>`
+		backup = `<button class="sbtn" disabled>备份所有账号</button>`
 	}
 	body := `<div class="header">
   <button class="back" onclick="send('showSettings','')">‹</button>
-  <div class="htext"><h1>More</h1><p>Sync, backups, and where things are kept</p></div>
+  <div class="htext"><h1>更多</h1><p>同步、备份和文件存放位置</p></div>
 </div>
 <div class="slist">
-  <button class="sbtn" onclick="send('showSync','')">Sync between accounts<span class="navchev">›</span></button>
+  <button class="sbtn" onclick="send('showSync','')">在账号之间同步<span class="navchev">›</span></button>
   ` + backup + `
-  <button class="sbtn" onclick="send('openBackups','')">Open backup folder</button>
-  <button class="sbtn" onclick="send('openArchive','')">Open archive folder</button>
+  <button class="sbtn" onclick="send('openBackups','')">打开备份文件夹</button>
+  <button class="sbtn" onclick="send('openArchive','')">打开归档文件夹</button>
 </div>`
 	return shell(body)
 }
@@ -869,15 +867,15 @@ func RenderDebug(vm DebugVM) string {
 	reportBox := `<div class="dbgbox">` + esc(vm.Report) + `</div>`
 	body := `<div class="header">
   <button class="back" onclick="send('showSettings', document.getElementById('dbgc').value)">‹</button>
-  <div class="htext"><h1>Report a bug</h1><p>Exactly what a report contains</p></div>
+  <div class="htext"><h1>报告问题</h1><p>报告里到底包含什么</p></div>
 </div>` + status + `
-<div class="dbgnote">Your email address, account IDs, user name and home folder are replaced with stand-ins like account-1 below. A name you gave a profile folder yourself can still show. ` + esc(diagnostics.RedactedMarker) + ` marks something that looked like an address or an ID and was blocked.</div>
+<div class="dbgnote">你的邮箱、账号 ID、用户名和主目录在下面都换成了 account-1 这样的代称。你自己给配置文件夹起的名字仍可能出现。` + esc(diagnostics.RedactedMarker) + ` 标出的是看起来像地址或 ID、已被遮住的内容。</div>
 ` + reportBox + `
-<div class="hint">What went wrong? (optional)</div>
-<textarea class="dbgarea" id="dbgc" placeholder="Switching to my work account left the personal one closed…">` + esc(vm.Comment) + `</textarea>
+<div class="hint">出了什么问题？（选填）</div>
+<textarea class="dbgarea" id="dbgc" placeholder="切换到工作账号后，个人账号被关掉了…">` + esc(vm.Comment) + `</textarea>
 <div class="footer">
-  <button class="btn btn-light" style="flex:none;padding:10px 14px" onclick="send('copyDebug', document.getElementById('dbgc').value)">Copy</button>
-  <button class="btn btn-primary" onclick="askReport()">Report a problem</button>
+  <button class="btn btn-light" style="flex:none;padding:10px 14px" onclick="send('copyDebug', document.getElementById('dbgc').value)">复制</button>
+  <button class="btn btn-primary" onclick="askReport()">报告问题</button>
 </div>`
 	return shell(body)
 }
@@ -889,7 +887,7 @@ func RenderRescan(accounts []core.ScannedAccount, preselected map[string]bool) s
 	esc := html.EscapeString
 	var cards strings.Builder
 	for _, a := range accounts {
-		date := "No date yet"
+		date := "暂无日期"
 		if !a.LastUpdated.IsZero() {
 			date = a.LastUpdated.Format("2006-01-02")
 		}
@@ -927,18 +925,18 @@ func RenderRescan(accounts []core.ScannedAccount, preselected map[string]bool) s
 				// produced them.
 				cards.WriteString(fmt.Sprintf(`
       <div class="card"><div style="width:21px;flex:none"></div>
-        <div class="body"><div class="row1"><span class="name">Signed out in Claude Desktop</span></div>
-          <div class="meta"><span class="chip">%s</span><span class="dot">·</span>%d chats<span class="dot">·</span>%s</div>
+        <div class="body"><div class="row1"><span class="name">已在 Claude Desktop 里退出登录</span></div>
+          <div class="meta"><span class="chip">%s</span><span class="dot">·</span>%d 个对话<span class="dot">·</span>%s</div>
           <div class="note-todo">%s</div></div>
-        <button class="btn-sm" data-uuid="%s" onclick="send('showRecover',this.dataset.uuid)">Recover</button></div>`,
+        <button class="btn-sm" data-uuid="%s" onclick="send('showRecover',this.dataset.uuid)">恢复</button></div>`,
 					esc(ShortID(a.UUID)), a.Convos, esc(date), esc(a.Note),
 					esc(a.UUID)))
 				continue
 			}
 			cards.WriteString(fmt.Sprintf(`
       <div class="card ghost"><div style="width:21px;flex:none"></div>
-        <div class="body"><div class="row1"><span class="name">Unrecognized account</span></div>
-          <div class="meta"><span class="chip">%s</span><span class="dot">·</span>%d chats<span class="dot">·</span>%s</div>
+        <div class="body"><div class="row1"><span class="name">无法识别的账号</span></div>
+          <div class="meta"><span class="chip">%s</span><span class="dot">·</span>%d 个对话<span class="dot">·</span>%s</div>
           <div class="note-bad">%s</div></div></div>`,
 				esc(ShortID(a.UUID)), a.Convos, esc(date), esc(a.Note)))
 			continue
@@ -952,7 +950,7 @@ func RenderRescan(accounts []core.ScannedAccount, preselected map[string]bool) s
 		case core.AccountTeam:
 			badge = `<span class="pill pill-team">🏢 Team</span>`
 		case core.AccountPersonal:
-			badge = `<span class="pill pill-personal">Personal</span>`
+			badge = `<span class="pill pill-personal">个人</span>`
 		}
 		sel, chk := "", ""
 		if preselected[a.HomeFolder] {
@@ -962,17 +960,17 @@ func RenderRescan(accounts []core.ScannedAccount, preselected map[string]bool) s
       <div class="card selectable%s" data-folder="%s" onclick="toggleCard(this)">
         <input type="checkbox" class="chk"%s>
         <div class="body"><div class="row1"><span class="name">%s</span>%s</div>
-          <div class="meta"><span class="chip">%s</span><span class="dot">·</span>%d chats<span class="dot">·</span>%s</div></div></div>`,
+          <div class="meta"><span class="chip">%s</span><span class="dot">·</span>%d 个对话<span class="dot">·</span>%s</div></div></div>`,
 			sel, esc(a.HomeFolder), chk, esc(name), badge, esc(ShortID(a.UUID)), a.Convos, esc(date)))
 	}
 	body := `<div class="header">
   <button class="back" onclick="send('showList','')">‹</button>
-  <div class="htext"><h1>Choose accounts</h1><p>Which accounts should be managed?</p></div>
+  <div class="htext"><h1>选择账号</h1><p>要管理哪些账号？</p></div>
 </div>
 <div class="cards">` + cards.String() + `</div>
 <div class="footer">
-  <button class="btn btn-light" onclick="send('showList','')">Cancel</button>
-  <button class="btn btn-primary" onclick="confirmManaged()">Confirm</button>
+  <button class="btn btn-light" onclick="send('showList','')">取消</button>
+  <button class="btn btn-primary" onclick="confirmManaged()">确认</button>
 </div>`
 	return shell(body)
 }
@@ -994,17 +992,17 @@ func RenderNewProfile(vm NewProfileVM) string {
 	esc := html.EscapeString
 	recovering := vm.RecoverUUID != ""
 
-	title, sub, confirm := "Add another account", "It gets its own profile", "Add"
+	title, sub, confirm := "添加另一个账号", "它会有自己独立的配置文件夹", "添加"
 	if recovering {
-		title, sub, confirm = "Recover this account", "It gets its own profile", "Recover"
+		title, sub, confirm = "恢复这个账号", "它会有自己独立的配置文件夹", "恢复"
 	}
 
 	// "different account" stays one unbroken phrase inside the <b>, so a test can
 	// assert on it as the user reads it. ShortID is the account's first 8 characters,
 	// so the copy says "starting", not "ending".
-	second := `<div class="hintw">Sign in as a <b>different account</b>. Signing in as one you already have creates a duplicate, and MCS will ask you to merge.</div>`
+	second := `<div class="hintw">请登录一个<b>不同的账号</b>。登录已有的账号会产生重复，MCS 会请你合并。</div>`
 	if recovering {
-		second = fmt.Sprintf(`<div class="hintw">Sign in as the account starting <b>%s</b> (%d chats). Its conversations come back on their own.</div>`,
+		second = fmt.Sprintf(`<div class="hintw">请登录开头为 <b>%s</b> 的账号（%d 个对话）。它的对话会自动回来。</div>`,
 			esc(ShortID(vm.RecoverUUID)), vm.Convos)
 	}
 
@@ -1017,10 +1015,10 @@ func RenderNewProfile(vm NewProfileVM) string {
   <button class="back" onclick="send('showList','')">‹</button>
   <div class="htext"><h1>` + esc(title) + `</h1><p>` + esc(sub) + `</p></div>
 </div>` + errBlock + `
-<input id="np" class="rninput" type="text" value="` + esc(vm.SuggestedName) + `" placeholder="Personal">
-<div class="hint">Claude closes, your current account is saved, and a clean Claude opens.</div>` + second + `
+<input id="np" class="rninput" type="text" value="` + esc(vm.SuggestedName) + `" placeholder="个人">
+<div class="hint">Claude 会关闭，当前账号会保存好，然后打开一个全新的 Claude。</div>` + second + `
 <div class="footer">
-  <button class="btn btn-light" onclick="send('showList','')">Cancel</button>
+  <button class="btn btn-light" onclick="send('showList','')">取消</button>
   <button class="btn btn-primary" data-uuid="` + esc(vm.RecoverUUID) + `" onclick="createProfileSave(this)">` + esc(confirm) + `</button>
 </div>
 <script>var e=document.getElementById('np'); e.focus(); e.select();</script>`
@@ -1064,18 +1062,18 @@ func RenderMerge(a, b MergeCandidateVM, plan core.MergePlan, status string, busy
 		if c.Folder == keep {
 			cls += " selected"
 		}
-		sub := "Will be archived"
+		sub := "将被归档"
 		if c.Folder == keep {
-			sub = "Keep this one"
+			sub = "保留这个"
 			if c.Current {
-				sub = "In use now · keep this one"
+				sub = "正在使用 · 保留这个"
 			}
 		}
 		return fmt.Sprintf(`
       <div class="%s" data-folder="%s" onclick="toggleMergePick(this)">
         <input type="checkbox" class="chk"%s>
         <div class="body"><div class="row1"><span class="name">%s</span>%s</div>
-          <div class="meta">%d chats<span class="dot">·</span>%s</div></div></div>`,
+          <div class="meta">%d 个对话<span class="dot">·</span>%s</div></div></div>`,
 			cls, esc(c.Folder), map[bool]string{true: " checked", false: ""}[c.Folder == keep],
 			esc(c.Name), planPill(c.Plan), c.Convos, esc(sub))
 	}
@@ -1091,22 +1089,22 @@ func RenderMerge(a, b MergeCandidateVM, plan core.MergePlan, status string, busy
 	// archive folder.
 	conflictNote := ""
 	if plan.Conflicts > 0 {
-		conflictNote = fmt.Sprintf(`<div class="hintw">%d conversations exist in both profiles and have changed since they were last in step. The newer version is kept. The other stays in the archived folder, which you can open from Settings.</div>`, plan.Conflicts)
+		conflictNote = fmt.Sprintf(`<div class="hintw">有 %d 个对话两边都有，而且上次同步后都改过。会保留较新的版本，另一份留在归档文件夹里，可以从设置里打开。</div>`, plan.Conflicts)
 	}
 	// Say so rather than quietly delivering a smaller number than promised.
 	if plan.Unreadable > 0 {
-		conflictNote += fmt.Sprintf(`<div class="hintw">%d files couldn't be read and will be left where they are.</div>`, plan.Unreadable)
+		conflictNote += fmt.Sprintf(`<div class="hintw">有 %d 个文件读不了，会留在原处不动。</div>`, plan.Unreadable)
 	}
 
 	body := `<div class="header">
   <button class="back" onclick="send('showList','')">‹</button>
-  <div class="htext"><h1>Merge duplicates</h1><p>Both are the same account</p></div>
+  <div class="htext"><h1>合并重复账号</h1><p>两个都是同一个账号</p></div>
 </div>` + st + `
 <div class="cards">` + card(a) + card(b) + `</div>
-<div class="hint">All ` + fmt.Sprint(plan.Combined) + ` conversations are combined into the account you keep. The other folder is archived, not deleted, so you can put it back yourself.</div>` + conflictNote + `
+<div class="hint">全部 ` + fmt.Sprint(plan.Combined) + ` 个对话会合并到你保留的账号里。另一个文件夹会归档而不是删除，你可以自己放回去。</div>` + conflictNote + `
 <div class="footer">
-  <button class="btn btn-light" onclick="send('showList','')">Cancel</button>
-  <button class="btn btn-primary"` + dis + ` ` + oc + `>Merge</button>
+  <button class="btn btn-light" onclick="send('showList','')">取消</button>
+  <button class="btn btn-primary"` + dis + ` ` + oc + `>合并</button>
 </div>`
 	return shell(body)
 }
@@ -1157,25 +1155,21 @@ func RenderSync(profiles []ProfileVM, status string, busy bool) string {
 			cards.WriteString(fmt.Sprintf(`
       <div class="%s" %s><div class="chev">→</div>
         <div class="body"><div class="row1"><span class="name">%s → %s</span></div>
-          <div class="sub">Copy %s's sessions into %s</div></div></div>`,
+          <div class="sub">把 %s 的对话复制到 %s</div></div></div>`,
 				cls, oc, esc(from.Name), esc(to.Name), esc(from.Name), esc(to.Name)))
 		}
 	}
 	if count == 0 {
-		cards.WriteString(`<div class="empty">Add at least two managed accounts to sync between them.</div>`)
+		cards.WriteString(`<div class="empty">至少要管理两个账号，才能在它们之间同步。</div>`)
 	}
 	if waiting > 0 {
-		word := "account"
-		if waiting > 1 {
-			word = "accounts"
-		}
 		cards.WriteString(fmt.Sprintf(
-			`<div class="empty">%d %s not signed in yet, so it can't be synced. Switch to it and sign in first.</div>`,
-			waiting, word))
+			`<div class="empty">有 %d 个账号还没登录，所以不能同步。请先切换过去登录。</div>`,
+			waiting))
 	}
 	body := `<div class="header">
   <button class="back" onclick="send('showMore','')">‹</button>
-  <div class="htext"><h1>Sync between accounts</h1><p>Claude closes, then reopens where you were</p></div>
+  <div class="htext"><h1>在账号之间同步</h1><p>Claude 会关闭，然后回到你原来的账号重新打开</p></div>
 </div>` + st + `
 <div class="cards">` + cards.String() + `</div>`
 	return shell(body)
@@ -1266,13 +1260,13 @@ func RenderRemoved(vm RemovedVM) string {
 		// break the handler (the v0.9.1 bug).
 		body := `<div class="header">
   <button class="back" onclick="send('showList','')">‹</button>
-  <div class="htext"><h1>` + esc(vm.Name) + ` was not removed</h1><p>Nothing was moved</p></div>
+  <div class="htext"><h1>` + esc(vm.Name) + ` 没有移除</h1><p>什么都没有动</p></div>
 </div>
 ` + st + `<div class="errbox">` + esc(vm.Err) + `</div>
-<div class="hint">The account is still on your list, so you can try again.</div>
+<div class="hint">这个账号还在列表里，你可以再试一次。</div>
 <div class="footer">
-  <button class="btn btn-light" onclick="send('showList','')">Back</button>
-  <button class="btn btn-primary" data-folder="` + esc(vm.Folder) + `" onclick="send('removeProfile',this.dataset.folder)">Try again</button>
+  <button class="btn btn-light" onclick="send('showList','')">返回</button>
+  <button class="btn btn-primary" data-folder="` + esc(vm.Folder) + `" onclick="send('removeProfile',this.dataset.folder)">再试一次</button>
 </div>`
 		return shell(body)
 	}
@@ -1290,11 +1284,9 @@ func RenderRemoved(vm RemovedVM) string {
 	// reports after it): zero gets its own phrase rather than falling through to a
 	// plural that would read "0 conversations", and a freshly created,
 	// never-signed-in profile is not a rare case to remove.
-	what := "Its folder is in your archive, not deleted."
-	if vm.Convos == 1 {
-		what = "Its 1 conversation is in your archive, not deleted."
-	} else if vm.Convos > 1 {
-		what = fmt.Sprintf("Its %d conversations are in your archive, not deleted.", vm.Convos)
+	what := "它的文件夹在归档里，没有删除。"
+	if vm.Convos > 0 {
+		what = fmt.Sprintf("它的 %d 个对话在归档里，没有删除。", vm.Convos)
 	}
 	// A registry that could not be cleared is not styled as an error: the folder
 	// really did move, which is the thing this screen exists to confirm. But it
@@ -1316,12 +1308,12 @@ func RenderRemoved(vm RemovedVM) string {
 		registryNote = `<div class="hintw">` + lines.String() + `</div>`
 	}
 	body := `<div class="header">
-  <div class="htext"><h1>` + esc(vm.Name) + ` removed</h1><p>It is off the switcher</p></div>
+  <div class="htext"><h1>` + esc(vm.Name) + ` 已移除</h1><p>它已经不在切换器里了</p></div>
 </div>
 ` + st + `<div class="hint">` + esc(what) + `</div>
 ` + registryNote + `
 <div class="footer">
-  <button class="btn btn-primary" onclick="send('showList','')">Done</button>
+  <button class="btn btn-primary" onclick="send('showList','')">完成</button>
 </div>`
 	return shell(body)
 }
