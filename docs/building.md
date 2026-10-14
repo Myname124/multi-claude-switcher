@@ -1,43 +1,23 @@
 # Building from source
 
 Only needed if you want to change the code. Users should
-[download a release](https://github.com/miou1107/multi-claude-switcher/releases/latest)
-instead — the shipped apps update themselves.
+[download a release](https://github.com/Myname124/multi-claude-switcher/releases/latest)
+instead: the shipped app updates itself.
 
 Requires Go 1.22 or newer.
 
 ## Which binary is which
 
-The repository builds four binaries, and picking the wrong one is the usual
-first mistake:
+The project runs on Windows only. It builds two binaries:
 
-| Binary | Platform | What it is |
-|---|---|---|
-| `cmd/mcs-menubar` | macOS | **The shipped macOS app.** Native NSPopover panel; needs CGO. |
-| `cmd/mcs-tray` | Windows | **The shipped Windows app.** System-tray icon plus a WebView2 panel; pure Go, no CGO. |
-| `cmd/mcs` | both | Command-line interface. Not shipped in releases — see [cli.md](cli.md). |
-| `cmd/mcs-picker` | macOS | Helper window used by the legacy tray menu. Not part of the shipped panel flow. |
+| Binary | What it is |
+|---|---|
+| `cmd/mcs-tray` | **The shipped app.** System-tray icon plus a WebView2 panel; pure Go, no CGO. |
+| `cmd/mcs` | Command-line interface. Not shipped in releases; see [cli.md](cli.md). |
 
-`cmd/mcs-tray` also builds on macOS, but it is the older static-menu app and is
-not what releases contain. For a macOS build you almost certainly want
-`cmd/mcs-menubar`.
+## The app
 
-## macOS
-
-```bash
-go build -o bin/mcs-menubar ./cmd/mcs-menubar
-```
-
-To produce a double-clickable `Multi-Claude Switcher.app` in `dist/` (universal
-arm64 + Intel, ad-hoc signed, zipped), pass the version you are packaging:
-
-```bash
-./scripts/package-app.sh 0.10.1
-```
-
-## Windows
-
-Pure Go — no CGO and no C toolchain:
+Pure Go, no CGO and no C toolchain:
 
 ```powershell
 $env:CGO_ENABLED = '0'
@@ -55,24 +35,30 @@ To build the installer you also need [Inno Setup](https://jrsoftware.org/isinfo.
 
 ## CLI
 
-```bash
-go build -o bin/mcs ./cmd/mcs
+```powershell
+go build -o bin/mcs.exe ./cmd/mcs
 ```
 
 ## Tests
 
-```bash
+```powershell
 go test ./...
 ```
+
+The packages only build for Windows, so run the tests there (CI does, on every
+push).
 
 On Windows the repository is checked out with CRLF line endings, so `gofmt -l`
 flags every file. Check formatting on LF-normalised copies rather than in place.
 
 ## Releasing
 
-Pushing a `v*` tag triggers `.github/workflows/release.yml`, which builds both
-platforms, publishes the GitHub Release, and bumps the Homebrew cask in
-`miou1107/homebrew-tap`. Nothing is released without a tag.
+Every push to `main` that changes code triggers `.github/workflows/release.yml`.
+It runs the tests, picks the next version (the newest `v*` tag with its last
+number plus one), builds the installer, attaches it to a draft release and then
+publishes it. Installed copies update to it on their next check. Pushes that
+only touch documentation do not release; to release anyway, run the workflow by
+hand from the Actions tab.
 
 ## Regenerating the README screenshot
 
@@ -84,12 +70,7 @@ contains anyone's real account names. After a UI change:
 go run ./scripts/gen-screenshot panel.html
 msedge --headless --disable-gpu --hide-scrollbars \
   --force-device-scale-factor=2 --screenshot=docs/assets/panel.png \
-  --window-size=400,347 "file://$PWD/panel.html"
+  --window-size=400,545 "file://$PWD/panel.html"
 ```
 
 Any Chromium works in place of `msedge`.
-
-## Other tools
-
-`scripts/probe/probe_runner.py` inspects profiles and validates local session
-synchronization. It is a maintainer's debugging tool, not part of either app.

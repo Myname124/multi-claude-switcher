@@ -13,7 +13,7 @@ import (
 // dupPillMarkup is the rendered pill, not its class name. shell() puts every class
 // name into the <style> block of every page, so asserting on a bare class name
 // passes whether or not the element was rendered — and its negation can never fail.
-const dupPillMarkup = `<span class="dup-pill">Duplicate</span>`
+const dupPillMarkup = `<span class="dup-pill">重复</span>`
 
 // The panel host cannot be tested without a display, so these cover the part
 // that decides what the user is shown: both hosts consume this same output.
@@ -90,7 +90,7 @@ func TestRenderRescanShowsAJustCreatedProfileAsSelectable(t *testing.T) {
 	}
 	html := RenderRescan(accounts, ComputePreselect(accounts, nil))
 
-	if strings.Contains(html, "Unrecognized account") {
+	if strings.Contains(html, "无法识别的账号") {
 		t.Fatal("a profile MCS just created must not be drawn as an unrecognised ghost")
 	}
 	if !strings.Contains(html, "Claude_Work") {
@@ -119,7 +119,7 @@ func TestRenderSyncSkipsProfilesWithoutAnAccount(t *testing.T) {
 	if !strings.Contains(html, `data-from="Claude" data-to="ClaudeThird"`) {
 		t.Fatal("the two signed-in accounts should still be offered")
 	}
-	if !strings.Contains(html, "not signed in yet") {
+	if !strings.Contains(html, "还没登录") {
 		t.Fatal("silently omitting it looks like a bug; say why it is missing")
 	}
 }
@@ -129,7 +129,7 @@ func TestRenderListFlagsProfileAwaitingSignIn(t *testing.T) {
 		{Folder: "Claude", Name: "Claude", Current: true, SignedIn: true},
 		{Folder: "ClaudeWork", Name: "Work"},
 	}, false, "")
-	if !strings.Contains(html, "Not signed in yet. Switch here, then sign in.") {
+	if !strings.Contains(html, "还没登录。切换过来，然后登录。") {
 		t.Fatal("the card must say why it is different, or switching to it lands on an unexplained login screen")
 	}
 	if !strings.Contains(html, `data-folder="ClaudeWork"`) {
@@ -153,7 +153,7 @@ func TestRenderListRowButtonIsAWrenchMenu(t *testing.T) {
 	if strings.Contains(html, ">✎<") || strings.Contains(html, ">⋯<") {
 		t.Fatal("neither the old pencil nor the old three-dot glyph may still be the row button")
 	}
-	if !strings.Contains(html, `<button type="button" class="chevbtn" aria-label="Account options" aria-haspopup="menu" aria-expanded="false" onclick="event.stopPropagation();toggleRowMenu(this)"><svg`) {
+	if !strings.Contains(html, `<button type="button" class="chevbtn" aria-label="账号选项" aria-haspopup="menu" aria-expanded="false" onclick="event.stopPropagation();toggleRowMenu(this)"><svg`) {
 		t.Fatalf("want the wrench button with its aria attributes, stopPropagation and toggle handler intact:\n%s", html)
 	}
 	if !strings.Contains(html, `stroke="currentColor"`) {
@@ -162,7 +162,7 @@ func TestRenderListRowButtonIsAWrenchMenu(t *testing.T) {
 	if !strings.Contains(html, `<div class="rowmenu" role="menu">`) {
 		t.Fatalf("the dropdown needs the menu role:\n%s", html)
 	}
-	if !strings.Contains(html, `role="menuitem" onclick="event.stopPropagation();startRename(this)">Change name</button>`) {
+	if !strings.Contains(html, `role="menuitem" onclick="event.stopPropagation();startRename(this)">改名</button>`) {
 		t.Fatalf("want a Change name menu item with the menuitem role:\n%s", html)
 	}
 	if strings.Contains(html, "showRename") {
@@ -322,10 +322,10 @@ func TestRenderListRenamesInPlace(t *testing.T) {
 	if !strings.Contains(html, `<input class="rnrow" type="text" value="Work account" onclick="event.stopPropagation()" onkeydown="rowRenameKey(event,this)">`) {
 		t.Fatalf("want an inline input pre-filled with the current name:\n%s", html)
 	}
-	if !strings.Contains(html, `<button type="button" class="rncancel" onclick="event.stopPropagation();cancelRename(this)">Cancel</button>`) {
+	if !strings.Contains(html, `<button type="button" class="rncancel" onclick="event.stopPropagation();cancelRename(this)">取消</button>`) {
 		t.Fatalf("want a Cancel control:\n%s", html)
 	}
-	if !strings.Contains(html, `<button type="button" class="rnsave" onclick="event.stopPropagation();rowRenameSave(this)">Save</button>`) {
+	if !strings.Contains(html, `<button type="button" class="rnsave" onclick="event.stopPropagation();rowRenameSave(this)">保存</button>`) {
 		t.Fatalf("want a Save control:\n%s", html)
 	}
 	if !strings.Contains(html, ".card.renaming .viewrow{display:none}") || !strings.Contains(html, ".card.renaming .editrow{display:flex}") {
@@ -382,7 +382,7 @@ func TestRowMenuRemoveUsesTheSameAskRemoveAsBefore(t *testing.T) {
 		{Folder: "Claude_Old", Name: "Old one", Convos: 34, SignedIn: true},
 		{Folder: "Claude_Two", Name: "Two", SignedIn: true},
 	}, false, "")
-	if !strings.Contains(notCurrent, `<button type="button" role="menuitem" class="danger" data-folder="Claude_Old" data-name="Old one" data-convos="34" data-current="0" onclick="event.stopPropagation();askRemove(this)">Remove from list</button>`) {
+	if !strings.Contains(notCurrent, `<button type="button" role="menuitem" class="danger" data-folder="Claude_Old" data-name="Old one" data-convos="34" data-current="0" onclick="event.stopPropagation();askRemove(this)">从列表移除</button>`) {
 		t.Fatalf("want the Remove menu item wired to askRemove with the folder, name, conversation count and current marker:\n%s", notCurrent)
 	}
 
@@ -408,7 +408,7 @@ func TestRowMenuHidesRemoveWhenItIsTheOnlyProfile(t *testing.T) {
 	if strings.Contains(html, `role="menuitem" class="danger"`) {
 		t.Fatalf("the only account listed must not offer a Remove menu item:\n%s", html)
 	}
-	if !strings.Contains(html, ">Change name<") {
+	if !strings.Contains(html, ">改名<") {
 		t.Fatal("Change name must still be offered even with Remove hidden")
 	}
 }
@@ -469,10 +469,10 @@ func TestRenderRescanRecoverableGhostOffersRecovery(t *testing.T) {
 		Note:        core.RecoverableGhostNote,
 	}}
 	html := RenderRescan(accounts, nil)
-	if !strings.Contains(html, "Signed out in Claude Desktop") {
+	if !strings.Contains(html, "已在 Claude Desktop 里退出登录") {
 		t.Fatalf("recoverable ghost needs its own heading:\n%s", html)
 	}
-	if strings.Contains(html, "Unrecognized account") {
+	if strings.Contains(html, "无法识别的账号") {
 		t.Fatal("a recoverable account is not unrecognised")
 	}
 	if !strings.Contains(html, `data-uuid="bbbbbbbb-0000-4000-8000-000000000002"`) {
@@ -487,23 +487,23 @@ func TestRenderRescanRecoverableGhostOffersRecovery(t *testing.T) {
 	if strings.Contains(html, `<div class="note-bad">`) {
 		t.Fatal("red is reserved for dead ghosts")
 	}
-	if !strings.Contains(html, "94 chats") {
+	if !strings.Contains(html, "94 个对话") {
 		t.Fatal("the conversation count is how the user recognises the account")
 	}
 }
 
 func TestRenderRescanDeadGhostStaysReadOnly(t *testing.T) {
 	accounts := []core.ScannedAccount{{
-		UUID: "dead", Complete: false, Recoverable: false, Note: "Invalid account data",
+		UUID: "dead", Complete: false, Recoverable: false, Note: "账号数据无效",
 	}}
 	html := RenderRescan(accounts, nil)
-	if !strings.Contains(html, "Unrecognized account") {
+	if !strings.Contains(html, "无法识别的账号") {
 		t.Fatal("a dead ghost keeps its existing heading")
 	}
 	if strings.Contains(html, "showRecover") {
 		t.Fatal("nothing to recover, so no Recover button")
 	}
-	if !strings.Contains(html, `<div class="note-bad">Invalid account data</div>`) {
+	if !strings.Contains(html, `<div class="note-bad">账号数据无效</div>`) {
 		t.Fatal("dead ghost keeps the red note")
 	}
 }
@@ -523,10 +523,10 @@ func TestRenderRescanRecoverableGhostIsNotSelectable(t *testing.T) {
 }
 
 func TestRenderRescanGhostStaysReadOnly(t *testing.T) {
-	accounts := []core.ScannedAccount{{UUID: "zzz-yyy", Convos: 4, Note: "Invalid account data"}}
+	accounts := []core.ScannedAccount{{UUID: "zzz-yyy", Convos: 4, Note: "账号数据无效"}}
 	html := RenderRescan(accounts, nil)
 
-	if !strings.Contains(html, "Unrecognized account") {
+	if !strings.Contains(html, "无法识别的账号") {
 		t.Fatal("ghost row missing")
 	}
 	if strings.Contains(html, `data-folder="`) {
@@ -617,7 +617,7 @@ func TestInformationalDialogFocusesOKNotAHiddenCancel(t *testing.T) {
 // themselves is that Claude is mid-work. Both dialogs carry the same line.
 func TestConfirmDialogWarnsAboutUnsavedWork(t *testing.T) {
 	html := RenderList([]ProfileVM{{Folder: "Claude", Name: "Work", SignedIn: true}}, false, "")
-	if !strings.Contains(html, `<div class="warn">Anything unsaved in Claude is interrupted.</div>`) {
+	if !strings.Contains(html, `<div class="warn">Claude 里没保存的内容会被中断。</div>`) {
 		t.Errorf("the dialog must say what closing Claude costs:\n%s", html)
 	}
 }
@@ -632,12 +632,12 @@ func TestRenderListAddCardOnlyWhereItLeadsSomewhere(t *testing.T) {
 	if !strings.Contains(with, `onclick="send('newProfile','')"`) {
 		t.Errorf("the add card must be offered where the flow exists:\n%s", with)
 	}
-	if !strings.Contains(with, "Add another account") {
+	if !strings.Contains(with, "添加另一个账号") {
 		t.Error("the card needs its label")
 	}
 
 	without := RenderList(profiles, false, "")
-	if strings.Contains(without, "Add another account") {
+	if strings.Contains(without, "添加另一个账号") {
 		t.Error("no add card where nothing is behind it")
 	}
 }
@@ -646,10 +646,10 @@ func TestRenderListAddCardOnlyWhereItLeadsSomewhere(t *testing.T) {
 // exactly who needs it, so the empty state must not swallow the card.
 func TestRenderListAddCardShowsOnAnEmptyList(t *testing.T) {
 	html := RenderList(nil, true, "")
-	if !strings.Contains(html, "Add another account") {
+	if !strings.Contains(html, "添加另一个账号") {
 		t.Errorf("an empty list still offers the way to add one:\n%s", html)
 	}
-	if !strings.Contains(html, "Run Rescan to add some") {
+	if !strings.Contains(html, "点「重新扫描」添加") {
 		t.Error("the existing empty-state text must survive alongside it")
 	}
 }
@@ -660,7 +660,7 @@ func TestRenderListWarnsAboutDuplicates(t *testing.T) {
 		{Folder: "Claude_Work", Name: "Work", UUID: "same", SignedIn: true},
 		{Folder: "Claude_Solo", Name: "Solo", UUID: "solo", SignedIn: true},
 	}, false, "")
-	if !strings.Contains(html, "the same account") {
+	if !strings.Contains(html, "是同一个账号") {
 		t.Fatalf("want a duplicate warning:\n%s", html)
 	}
 	// Folder names go through data-* and are read back with dataset, never
@@ -685,7 +685,7 @@ func TestRenderListDuplicateWarningDisambiguatesEqualNames(t *testing.T) {
 		{Folder: "Claude", Name: "Claude", UUID: "same", SignedIn: true},
 		{Folder: "Claude_Work", Name: "Claude", UUID: "same", SignedIn: true},
 	}, false, "")
-	if !strings.Contains(html, "Claude and Claude_Work are the same account") {
+	if !strings.Contains(html, "Claude 和 Claude_Work 是同一个账号") {
 		t.Fatalf("equal names must be disambiguated by folder:\n%s", html)
 	}
 }
@@ -695,7 +695,7 @@ func TestRenderListNoWarningWhenAccountsAreUnique(t *testing.T) {
 		{Folder: "Claude", Name: "Claude", UUID: "a", SignedIn: true},
 		{Folder: "Claude_Two", Name: "Two", UUID: "b", SignedIn: true},
 	}, false, "")
-	if strings.Contains(html, "the same account") {
+	if strings.Contains(html, "是同一个账号") {
 		t.Fatal("no duplicates, no warning")
 	}
 	if strings.Contains(html, dupPillMarkup) {
@@ -710,7 +710,7 @@ func TestRenderListDuplicateWarningIgnoresProfilesWithNoAccount(t *testing.T) {
 		{Folder: "Claude_A", Name: "A", UUID: "", SignedIn: false},
 		{Folder: "Claude_B", Name: "B", UUID: "", SignedIn: false},
 	}, false, "")
-	if strings.Contains(html, "the same account") {
+	if strings.Contains(html, "是同一个账号") {
 		t.Fatalf("empty UUIDs must not group:\n%s", html)
 	}
 }
@@ -722,8 +722,8 @@ func TestRenderListOneWarningForTheFirstGroupOnly(t *testing.T) {
 		{Folder: "Claude_C", Name: "C", UUID: "y", SignedIn: true},
 		{Folder: "Claude_D", Name: "D", UUID: "y", SignedIn: true},
 	}, false, "")
-	if strings.Count(html, "the same account") != 1 {
-		t.Fatalf("one group at a time, got %d warnings:\n%s", strings.Count(html, "the same account"), html)
+	if strings.Count(html, "是同一个账号") != 1 {
+		t.Fatalf("one group at a time, got %d warnings:\n%s", strings.Count(html, "是同一个账号"), html)
 	}
 	if !strings.Contains(html, `data-dup-a="Claude_A" data-dup-b="Claude_B"`) {
 		t.Fatal("the first group by folder order goes first")
@@ -737,7 +737,7 @@ func TestRenderListOneWarningForTheFirstGroupOnly(t *testing.T) {
 
 func TestRenderNewProfileAddVariant(t *testing.T) {
 	html := RenderNewProfile(NewProfileVM{})
-	if !strings.Contains(html, "Add another account") {
+	if !strings.Contains(html, "添加另一个账号") {
 		t.Fatalf("title:\n%s", html)
 	}
 	if !strings.Contains(html, `value=""`) {
@@ -747,10 +747,10 @@ func TestRenderNewProfileAddVariant(t *testing.T) {
 	// Wrapping only the word — "a <b>different</b> account" — makes this assertion
 	// fail against its own implementation, which is how the first draft of this task
 	// shipped a test that could not pass.
-	if !strings.Contains(html, "different account") {
+	if !strings.Contains(html, "不同的账号") {
 		t.Fatal("the add path must warn against signing in as an existing account")
 	}
-	if strings.Contains(html, "conversations come back") {
+	if strings.Contains(html, "对话会自动回来") {
 		t.Fatal("no recovery copy on the add path")
 	}
 }
@@ -761,7 +761,7 @@ func TestRenderNewProfileRecoverVariant(t *testing.T) {
 		SuggestedName: "Recovered 2026-07-29",
 		Convos:        94,
 	})
-	if !strings.Contains(html, "Recover this account") {
+	if !strings.Contains(html, "恢复这个账号") {
 		t.Fatalf("title:\n%s", html)
 	}
 	if !strings.Contains(html, `value="Recovered 2026-07-29"`) {
@@ -773,14 +773,14 @@ func TestRenderNewProfileRecoverVariant(t *testing.T) {
 	if !strings.Contains(html, "94") {
 		t.Fatal("the conversation count helps the user recognise the account")
 	}
-	if strings.Contains(html, "different account") {
+	if strings.Contains(html, "不同的账号") {
 		t.Fatal("the different-account warning belongs to the add path only")
 	}
 }
 
 func TestRenderNewProfileShowsAnError(t *testing.T) {
-	html := RenderNewProfile(NewProfileVM{Err: "use only letters, numbers, spaces, dashes and underscores"})
-	if !strings.Contains(html, "use only letters") {
+	html := RenderNewProfile(NewProfileVM{Err: "只能使用字母、数字、空格、连字符和下划线"})
+	if !strings.Contains(html, "只能使用字母") {
 		t.Fatalf("a rejected name must say why:\n%s", html)
 	}
 }
@@ -821,7 +821,7 @@ func TestRenderMergePreselectsTheProfileInUse(t *testing.T) {
 	if !strings.Contains(html, `class="card selectable" data-folder="Claude"`) {
 		t.Fatalf("the other profile must not be preselected:\n%s", html)
 	}
-	if !strings.Contains(html, "Will be archived") {
+	if !strings.Contains(html, "将被归档") {
 		t.Fatal("the other card must say what happens to it")
 	}
 }
@@ -852,7 +852,7 @@ func TestRenderMergeShowsThePlansCombinedTotalNotTheSum(t *testing.T) {
 	if strings.Contains(html, "141") {
 		t.Fatalf("the sum of both sides double-counts shared records:\n%s", html)
 	}
-	if !strings.Contains(html, "archived, not deleted") {
+	if !strings.Contains(html, "会归档而不是删除") {
 		t.Fatal("must say nothing is deleted")
 	}
 }
@@ -862,7 +862,7 @@ func TestRenderMergeDisclosesConflicts(t *testing.T) {
 		MergeCandidateVM{Folder: "Claude", Name: "Claude", Convos: 99, Current: true},
 		MergeCandidateVM{Folder: "Claude_Work", Name: "Work", Convos: 42},
 		core.MergePlan{Combined: 121, Conflicts: 3}, "", false)
-	if !strings.Contains(html, "3 conversations exist in both") {
+	if !strings.Contains(html, "有 3 个对话两边都有") {
 		t.Fatalf("a conflict strands a version in the archive; say so first:\n%s", html)
 	}
 }
@@ -874,7 +874,7 @@ func TestRenderMergeDisclosesUnreadableFiles(t *testing.T) {
 		MergeCandidateVM{Folder: "Claude", Name: "Claude", Convos: 99, Current: true},
 		MergeCandidateVM{Folder: "Claude_Work", Name: "Work", Convos: 42},
 		core.MergePlan{Combined: 121, Unreadable: 2}, "", false)
-	if !strings.Contains(html, "2 files couldn't be read") {
+	if !strings.Contains(html, "有 2 个文件读不了") {
 		t.Fatalf("unreadable files must be disclosed:\n%s", html)
 	}
 
@@ -892,7 +892,7 @@ func TestRenderMergeSaysNothingAboutConflictsWhenThereAreNone(t *testing.T) {
 		MergeCandidateVM{Folder: "Claude", Name: "Claude", Convos: 99, Current: true},
 		MergeCandidateVM{Folder: "Claude_Work", Name: "Work", Convos: 42},
 		core.MergePlan{Combined: 141}, "", false)
-	if strings.Contains(html, "exist in both") {
+	if strings.Contains(html, "两边都有") {
 		t.Fatalf("no conflicts, no warning:\n%s", html)
 	}
 }
@@ -935,7 +935,7 @@ func TestRenderMergeBusyDisablesTheAction(t *testing.T) {
 // to More when Settings was slimmed; what must not happen is it disappearing.
 func TestMoreOffersTheArchiveFolder(t *testing.T) {
 	html := RenderMore(MoreVM{})
-	if !strings.Contains(html, "Open archive folder") {
+	if !strings.Contains(html, "打开归档文件夹") {
 		t.Fatalf("merged-away profiles have to be findable:\n%s", html)
 	}
 	if !strings.Contains(html, "send('openArchive'") {
@@ -1006,14 +1006,14 @@ func TestChevronsMarkNavigationOnly(t *testing.T) {
 	if strings.Count(settings, `class="navchev"`) != 1 {
 		t.Errorf("Settings should carry exactly one chevron, on More:\n%s", settings)
 	}
-	if !strings.Contains(settings, `send('showMore','')">More<span class="navchev">`) {
+	if !strings.Contains(settings, `send('showMore','')">更多<span class="navchev">`) {
 		t.Error("the chevron is not on the More row")
 	}
 	more := RenderMore(MoreVM{})
 	if strings.Count(more, `class="navchev"`) != 1 {
 		t.Errorf("More should carry exactly one chevron, on the sync row:\n%s", more)
 	}
-	if !strings.Contains(more, `send('showSync','')">Sync between accounts<span class="navchev">`) {
+	if !strings.Contains(more, `send('showSync','')">在账号之间同步<span class="navchev">`) {
 		t.Error("the chevron is not on the sync row")
 	}
 }
@@ -1045,7 +1045,7 @@ func TestBusyDisablesOnlyTheSlowActions(t *testing.T) {
 // The screen is named for what it is for, not for what it shows.
 func TestTheBugReportScreenIsNamedForReporting(t *testing.T) {
 	html := RenderDebug(DebugVM{Report: "x"})
-	if !strings.Contains(html, "<h1>Report a bug</h1>") {
+	if !strings.Contains(html, "<h1>报告问题</h1>") {
 		t.Errorf("the heading still says something else:\n%s", html)
 	}
 }
@@ -1069,7 +1069,7 @@ func TestRenderDebugShowsWhatWillBePublished(t *testing.T) {
 		`class="dbgnote"`,
 		`send('showSettings', document.getElementById('dbgc').value)`,
 		`id="dbgc"`,
-		"Report a problem",
+		">报告问题</button>",
 		`send('copyDebug'`,
 	} {
 		if !strings.Contains(h, want) {
@@ -1120,7 +1120,7 @@ func TestRenderDebugExplainsTheRedactionMarker(t *testing.T) {
 	if strings.Contains(h, diagnostics.UnregisteredMarker) {
 		t.Errorf("the notice should explain the marker users meet, not the one that means a defect:\n%s", h)
 	}
-	if !strings.Contains(h, "marks something that looked like an address or an ID and was blocked") {
+	if !strings.Contains(h, "标出的是看起来像地址或 ID、已被遮住的内容") {
 		t.Errorf("the notice must explain what the marker means:\n%s", h)
 	}
 }
@@ -1192,10 +1192,11 @@ func TestAskRemoveWordsTheConversationCountNaturally(t *testing.T) {
 	if !strings.Contains(h, `onclick="event.stopPropagation();askRemove(this)"`) {
 		t.Fatalf("precondition: this fixture must actually render a Remove menu item:\n%s", h)
 	}
+	// Chinese has no plural, so one and many share a sentence; zero still gets
+	// its own, so a never-signed-in slot does not read as "0 个对话".
 	for _, want := range []string{
-		`n === 0 ? 'It comes off your list. Nothing is deleted, and you can sign in to it again any time.'`,
-		`n === 1 ? 'It comes off your list. Its 1 conversation is kept, not deleted. Signing in to this account again starts a new copy of it, without that conversation.'`,
-		`'It comes off your list. Its ' + n + ' conversations are kept, not deleted. Signing in to this account again starts a new copy of it, without those conversations.'`,
+		`n === 0 ? '它会从列表中移除。不会删除任何东西，以后随时可以重新登录。'`,
+		`'它会从列表中移除。它的 ' + n + ' 个对话会保留，不会删除。重新登录这个账号会建立一份新的副本，不包含这些对话。'`,
 	} {
 		if !strings.Contains(h, want) {
 			t.Fatalf("askRemove must phrase zero, one, and many conversations naturally, missing %q:\n%s", want, h)
@@ -1214,10 +1215,10 @@ func TestAskRemoveWordsTheConversationCountNaturally(t *testing.T) {
 func TestAskRemoveDoesNotPromiseConversationsComeBack(t *testing.T) {
 	h := RenderList([]ProfileVM{{Folder: "Claude", Name: "Some name", Convos: 34, SignedIn: true}}, false, "")
 	fn := jsFunctions(h)["askRemove"]
-	if strings.Contains(fn, "not deleted, and you can add it back") {
+	if strings.Contains(fn, "不会删除，重新登录就能找回") {
 		t.Fatalf("the kept fact and the sign-in-again fact must not be joined into one implying sentence:\n%s", fn)
 	}
-	if !strings.Contains(fn, "kept, not deleted") || !strings.Contains(fn, "starts a new copy of it, without those conversations") {
+	if !strings.Contains(fn, "会保留，不会删除") || !strings.Contains(fn, "建立一份新的副本，不包含这些对话") {
 		t.Fatalf("both facts must still be stated, honestly: kept, and a fresh sign-in does not bring them along:\n%s", fn)
 	}
 }
@@ -1239,13 +1240,13 @@ func TestRemoveConfirmationHasNoWarningBlock(t *testing.T) {
 		t.Fatalf("precondition: this fixture must actually render a Remove menu item:\n%s", h)
 	}
 	fn := jsFunctions(h)["askRemove"]
-	if !strings.Contains(fn, `what, 'Remove', '', 'destructive'`) {
+	if !strings.Contains(fn, `what, '移除', '', 'destructive'`) {
 		t.Fatalf("askRemove must pass an empty warn string to askConfirm:\n%s", fn)
 	}
 	if !strings.Contains(h, `warnEl.style.display = warnText ? '' : 'none';`) {
 		t.Fatalf("askConfirm must hide the warning block when warn is empty:\n%s", h)
 	}
-	if !strings.Contains(h, `arguments.length >= 6 ? warn : 'Anything unsaved in Claude is interrupted.'`) {
+	if !strings.Contains(h, `arguments.length >= 6 ? warn : 'Claude 里没保存的内容会被中断。'`) {
 		t.Fatalf("askConfirm must distinguish an omitted warn from an explicitly empty one:\n%s", h)
 	}
 }
@@ -1268,10 +1269,10 @@ func TestAskRemoveOpensInformationalDialogForTheAccountInUse(t *testing.T) {
 	if !strings.Contains(fn, `el.dataset.current === '1'`) {
 		t.Fatalf("askRemove must branch on the current-account marker:\n%s", fn)
 	}
-	if !strings.Contains(fn, `askConfirm('', '', 'Claude is open on '+el.dataset.name,`) {
+	if !strings.Contains(fn, `askConfirm('', '', 'Claude 正在使用 '+el.dataset.name,`) {
 		t.Fatalf("the informational dialog must use action='' and the specified title:\n%s", fn)
 	}
-	if !strings.Contains(fn, `'Switch to another account first, then you can remove it.', 'Got it', '');`) {
+	if !strings.Contains(fn, `'先切换到别的账号，然后才能移除它。', '知道了', '');`) {
 		t.Fatalf("the informational dialog must have the specified body and a single 'Got it' button:\n%s", fn)
 	}
 }
@@ -1375,7 +1376,7 @@ func TestRenderRemovedFallsBackToAPlainSuccessScreenRatherThanCrashing(t *testin
 		}
 	}()
 	h := RenderRemoved(RemovedVM{Name: "Old one", Convos: 34})
-	if !strings.Contains(h, "Old one removed") {
+	if !strings.Contains(h, "Old one 已移除") {
 		t.Fatalf("the fallback must still be a truthful, readable screen, not empty output:\n%s", h)
 	}
 	if strings.Contains(h, `class="hintw"`) {
@@ -1398,10 +1399,10 @@ func TestRenderRemovedFallsBackToAPlainSuccessScreenRatherThanCrashing(t *testin
 // that fallback, is the partial-failure branch.
 func TestRenderRemovedSaysItIsArchivedNotDeleted(t *testing.T) {
 	h := RenderRemoved(RemovedVM{Name: "Old one", Convos: 34, RegistryNote: "its name is still recorded"})
-	if !strings.Contains(h, "Old one removed") {
+	if !strings.Contains(h, "Old one 已移除") {
 		t.Fatal("the screen does not say what happened")
 	}
-	if !strings.Contains(h, "in your archive, not deleted") {
+	if !strings.Contains(h, "在归档里，没有删除") {
 		t.Fatalf("the screen does not say the folder is kept:\n%s", h)
 	}
 	if strings.Contains(h, "openArchive") {
@@ -1421,10 +1422,10 @@ func TestRenderRemovedSaysItIsArchivedNotDeleted(t *testing.T) {
 func TestRenderRemovedShowsARegistryComplaintOnSuccess(t *testing.T) {
 	h := RenderRemoved(RemovedVM{Name: "Old one", Convos: 3,
 		RegistryNote: "its display name is still recorded, and a later account reusing this identity would inherit it"})
-	if !strings.Contains(h, "Old one removed") {
+	if !strings.Contains(h, "Old one 已移除") {
 		t.Fatal("a partial failure must still read as a success: the folder did move")
 	}
-	if strings.Contains(h, "was not removed") {
+	if strings.Contains(h, "没有移除") {
 		t.Fatal("a partial failure must not draw the failure screen: the folder did move")
 	}
 	if !strings.Contains(h, "its display name is still recorded, and a later account reusing this identity would inherit it") {
@@ -1456,10 +1457,10 @@ func TestRenderRemovedSplitsARegistryComplaintIntoLines(t *testing.T) {
 func TestRenderRemovedSaysNothingMovedOnFailure(t *testing.T) {
 	h := RenderRemoved(RemovedVM{Folder: "Claude_Old", Name: "Old one",
 		Err: "Claude may still be holding its files."})
-	if !strings.Contains(h, "was not removed") {
+	if !strings.Contains(h, "没有移除") {
 		t.Fatal("a failure does not read as a failure")
 	}
-	if !strings.Contains(h, "still on your list") {
+	if !strings.Contains(h, "还在列表里") {
 		t.Fatal("a failure does not say the account survived")
 	}
 	if !strings.Contains(h, "Claude may still be holding its files.") {
@@ -1477,15 +1478,15 @@ func TestRenderRemovedSaysNothingMovedOnFailure(t *testing.T) {
 // note) no longer reaches this screen at all (item 4).
 func TestRenderRemovedWordsTheConversationCountNaturally(t *testing.T) {
 	zero := RenderRemoved(RemovedVM{Name: "Fresh", RegistryNote: "left something behind"})
-	if !strings.Contains(zero, "Its folder is in your archive, not deleted.") {
+	if !strings.Contains(zero, "它的文件夹在归档里，没有删除。") {
 		t.Fatalf("zero conversations must not read as a count:\n%s", zero)
 	}
 	one := RenderRemoved(RemovedVM{Name: "Solo", Convos: 1, RegistryNote: "left something behind"})
-	if !strings.Contains(one, "Its 1 conversation is in your archive, not deleted.") {
+	if !strings.Contains(one, "它的 1 个对话在归档里，没有删除。") {
 		t.Fatalf("one conversation must not be pluralized:\n%s", one)
 	}
 	many := RenderRemoved(RemovedVM{Name: "Busy", Convos: 5, RegistryNote: "left something behind"})
-	if !strings.Contains(many, "Its 5 conversations are in your archive, not deleted.") {
+	if !strings.Contains(many, "它的 5 个对话在归档里，没有删除。") {
 		t.Fatalf("many conversations must be pluralized:\n%s", many)
 	}
 }

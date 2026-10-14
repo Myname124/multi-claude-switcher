@@ -130,7 +130,7 @@ func (s *Switcher) SafeSwitch(srcProfilePath, dstProfilePath, dstIdentity string
 	// which reports its own failure, and a switch away from a profile that has since
 	// been removed is still a switch worth completing.
 	if fi, err := os.Stat(dstProfilePath); err != nil || !fi.IsDir() {
-		return fmt.Errorf("can't switch to %s: no profile folder there", filepath.Base(dstProfilePath))
+		return fmt.Errorf("无法切换到 %s：那里没有配置文件夹", filepath.Base(dstProfilePath))
 	}
 
 	// Step 1: close any running Claude Desktop (never write into a live profile).
@@ -181,7 +181,7 @@ func (s *Switcher) SafeSwitch(srcProfilePath, dstProfilePath, dstIdentity string
 	primaryErr, othersErr := s.launchAll(owed, dstProfilePath)
 	if primaryErr != nil {
 		if alignErr != nil {
-			return fmt.Errorf("%w (and Claude Desktop could not be reopened: %v)", alignErr, primaryErr)
+			return fmt.Errorf("%w（而且 Claude Desktop 没能重新打开：%v）", alignErr, primaryErr)
 		}
 		return fmt.Errorf("failed to launch target profile: %w", primaryErr)
 	}
@@ -286,7 +286,7 @@ func (s *Switcher) launchAll(paths []string, primary string) (primaryErr, others
 		}
 	}
 	if len(others) > 0 {
-		othersErr = fmt.Errorf("could not reopen %s", strings.Join(others, "; "))
+		othersErr = fmt.Errorf("无法重新打开 %s", strings.Join(others, "；"))
 	}
 	return primaryErr, othersErr
 }

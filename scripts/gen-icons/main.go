@@ -8,9 +8,6 @@
 //
 // Outputs:
 //
-//	cmd/mcs-tray/assets/appicon-1024.png  color app-icon source (macOS .icns is
-//	                                       generated from this at packaging time)
-//	cmd/mcs-tray/assets/icon.png          black menu-bar template (macOS recolors)
 //	cmd/mcs-tray/assets/icon.ico          color multi-resolution Windows icon
 //	docs/assets/icon.png                  512px color icon for README / docs
 //
@@ -130,22 +127,6 @@ func renderSquare(size int, sample func(x, y float64) (rgb, float64)) *image.NRG
 	})
 }
 
-// renderTemplate renders the eyes on a SQUARE canvas centered on the eye group.
-// This must stay 1:1 — systray forces the menu-bar image to a 16x16 square
-// (systray_darwin.m: `[image setSize:NSMakeSize(16, 16)]`), so a non-square
-// source gets squished horizontally. The wide eye group leaves vertical padding,
-// which is the normal, balanced look for a menu-bar glyph.
-func renderTemplate(size int) *image.NRGBA {
-	// Square crop [12..90] x [11..89] in 0..100 space, centered on the eyes.
-	const x0, x1 = 12.0, 90.0
-	const y0, y1 = 11.0, 89.0
-	return render(size, size, func(px, py float64) (rgb, float64) {
-		x := x0 + px/float64(size)*(x1-x0)
-		y := y0 + py/float64(size)*(y1-y0)
-		return templateMark(x, y)
-	})
-}
-
 // render maps output pixel (px+0.5,py+0.5) via mapper and supersamples.
 func render(w, h int, mapper func(px, py float64) (rgb, float64)) *image.NRGBA {
 	img := image.NewNRGBA(image.Rect(0, 0, w, h))
@@ -255,8 +236,6 @@ func main() {
 	p := func(parts ...string) string { return filepath.Join(append([]string{root}, parts...)...) }
 
 	fmt.Println("Generating icons:")
-	writePNG(p("cmd", "mcs-tray", "assets", "appicon-1024.png"), renderSquare(1024, colorIcon))
-	writePNG(p("cmd", "mcs-tray", "assets", "icon.png"), renderTemplate(44))
 	writeICO(p("cmd", "mcs-tray", "assets", "icon.ico"), []int{16, 32, 48, 64, 128, 256})
 	writePNG(p("docs", "assets", "icon.png"), renderSquare(512, colorIcon))
 	fmt.Println("Done.")

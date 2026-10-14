@@ -132,7 +132,7 @@ func (c *ProfileCreator) Create(req CreateProfileRequest) (*CreatedProfile, erro
 
 	created := &CreatedProfile{Identity: identity, DataDir: dataDir}
 	if err := c.Plat.LaunchProfile(dataDir); err != nil {
-		return created, fmt.Errorf("the profile is ready but Claude didn't open: %w", err)
+		return created, fmt.Errorf("配置已准备好，但 Claude 没有打开：%w", err)
 	}
 	// Claude is now open on the new profile, so this is the account the user is
 	// on. Recording it here rather than leaving it to the caller keeps every path

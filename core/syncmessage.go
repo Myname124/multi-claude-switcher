@@ -17,7 +17,7 @@ func SyncResultMessage(rep *SyncReport, targetDisplay string) string {
 	if skipped == "" {
 		return summary
 	}
-	return summary + " " + skipped
+	return summary + skipped
 }
 
 // SyncResultParts splits that sentence in two: what the sync did, and what it
@@ -30,42 +30,30 @@ func SyncResultMessage(rep *SyncReport, targetDisplay string) string {
 // up wording the same fact differently.
 func SyncResultParts(rep *SyncReport, targetDisplay string) (summary, skipped string) {
 	if rep == nil {
-		return "Sync finished.", ""
+		return "同步完成。", ""
 	}
 	// No tick in the text: the progress card draws its own, and two in a row
 	// reads as a stutter. The one-line banner this also feeds never needed it to
 	// be understood.
-	summary = fmt.Sprintf("Copied %s into %s.", pluralConversations(rep.CopiedCount), targetDisplay)
+	summary = fmt.Sprintf("已复制 %s到 %s。", pluralConversations(rep.CopiedCount), targetDisplay)
 	if rep.ConflictCount > 0 {
 		// The target already had a newer version of these, so they were left
 		// alone. Worth saying, because otherwise a sync that copied little looks
 		// like a sync that did nothing.
-		tail := "was already newer here and left alone."
-		if rep.ConflictCount != 1 {
-			tail = "were already newer here and left alone."
-		}
-		summary += " " + pluralConversations(rep.ConflictCount) + " " + tail
+		summary += "另有 " + pluralConversations(rep.ConflictCount) + "在这边已经是更新的版本，保持不动。"
 	}
 	if n := len(rep.SkipErrors); n > 0 {
 		// These could not be read or written at all. A count with a pointer to the
 		// log beats silence: the run continued past them on purpose, so nothing
 		// else would ever mention them.
-		tail := "file could not be read and was skipped (see the log)."
-		if n != 1 {
-			tail = "files could not be read and were skipped (see the log)."
-		}
-		skipped = fmt.Sprintf("%d %s", n, tail)
+		skipped = fmt.Sprintf("有 %d 个文件读不了，已跳过（详见日志）。", n)
 	}
 	return summary, skipped
 }
 
-// pluralConversations renders a count with its noun, so "1 conversation" never
-// comes out as "1 conversations".
+// pluralConversations renders a count of conversations with its measure word.
 func pluralConversations(n int) string {
-	if n == 1 {
-		return "1 conversation"
-	}
-	return fmt.Sprintf("%d conversations", n)
+	return fmt.Sprintf("%d 个对话", n)
 }
 
 // SyncFailureMessage turns a sync error into something a non-technical user can
@@ -78,7 +66,7 @@ func SyncFailureMessage(err error) string {
 		// prefixing it would read as "Sync failed: quit Claude Desktop first".
 		return reason
 	}
-	return "Sync failed: " + reason
+	return "同步失败：" + reason
 }
 
 // SyncFailureReason is the same text without the "Sync failed" prefix, for a
@@ -96,7 +84,7 @@ func SyncFailureReason(err error) string {
 		// Reached by anyone who launched Claude Desktop themselves instead of
 		// through MCS. The underlying reason (no --user-data-dir to match on) is
 		// not something to put in front of a user; the action is.
-		return "Quit Claude Desktop first, then try Sync again."
+		return "请先退出 Claude Desktop，然后再试一次同步。"
 	}
 	return err.Error()
 }

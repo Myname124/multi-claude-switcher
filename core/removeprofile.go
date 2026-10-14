@@ -30,7 +30,7 @@ func RemoveProfile(plat platform.Platform, identity string) (string, error) {
 		return "", err
 	}
 	if fi, statErr := os.Stat(path); statErr != nil || !fi.IsDir() {
-		return "", fmt.Errorf("%s is no longer there. Run Rescan", name)
+		return "", fmt.Errorf("%s 已经不在了。请重新扫描", name)
 	}
 
 	// Renaming a directory Claude has open is the one way this can corrupt data,
@@ -43,11 +43,11 @@ func RemoveProfile(plat platform.Platform, identity string) (string, error) {
 	if err != nil {
 		// Not knowing whether Claude holds the directory is not permission to
 		// rename it, and a removal is never urgent enough to guess.
-		return "", fmt.Errorf("could not check whether Claude is running, so %s was left alone: %w", name, err)
+		return "", fmt.Errorf("无法确认 Claude 是否在运行，所以没有动 %s：%w", name, err)
 	}
 	for _, r := range running {
 		if platform.SamePath(r, path) {
-			return "", fmt.Errorf("Claude is open on %s. Switch to another account or quit Claude, then remove it", name)
+			return "", fmt.Errorf("Claude 正在使用 %s。请先切换到别的账号或退出 Claude，再移除它", name)
 		}
 	}
 
@@ -75,28 +75,28 @@ func RemoveProfile(plat platform.Platform, identity string) (string, error) {
 	// shown that word anywhere else in the app.
 	var errs []error
 	if err := RemoveManaged(identity); err != nil {
-		errs = append(errs, fmt.Errorf("The switcher's own account list still mentions it. Nothing needs doing: the panel only shows accounts whose folder is still there. (%w)", err))
+		errs = append(errs, fmt.Errorf("切换器自己的账号列表里还记着它。不需要处理：面板只显示文件夹还在的账号。（%w）", err))
 	}
 	if err := SetProfileName(identity, ""); err != nil {
-		errs = append(errs, fmt.Errorf("Its name is still recorded as %q. If you sign in to this account again later it will come back under that name, which you can change with Rename. (%w)", name, err))
+		errs = append(errs, fmt.Errorf("它的名字仍记录为 %q。以后再登录这个账号时会沿用这个名字，可以用「改名」修改。（%w）", name, err))
 	}
 	// Pending entries are pruned only on sign-in, so one left here would outlive
 	// every folder it could describe.
 	if err := RemovePending(identity); err != nil {
-		errs = append(errs, fmt.Errorf("Its \"waiting to sign in\" note is still recorded. Nothing needs doing: that note is only ever shown against an account whose folder is still there. (%w)", err))
+		errs = append(errs, fmt.Errorf("它的「等待登录」标记还在。不需要处理：这个标记只会显示在文件夹还在的账号上。（%w）", err))
 	}
 	// A stale active.json resolves to "" through lastActivatedPath and is harmless,
 	// but it is one more record naming something that is gone.
 	if LoadActiveProfile() == identity {
 		if err := SaveActiveProfile(""); err != nil {
-			errs = append(errs, fmt.Errorf("It is still recorded as the account you used last. Nothing needs doing: switching to any account replaces that. (%w)", err))
+			errs = append(errs, fmt.Errorf("它仍被记录为你上次使用的账号。不需要处理：切换到任何账号都会替换这条记录。（%w）", err))
 		}
 	}
 	if len(errs) > 0 {
 		// The summary is its own line rather than a "..., but" clause running into
 		// the first complaint: errors.Join separates its entries with newlines, and
 		// the screen draws one line per entry.
-		joined := fmt.Errorf("%s was removed, but some of what the switcher had recorded about it could not be cleared.\n%w", name, errors.Join(errs...))
+		joined := fmt.Errorf("%s 已移除，但切换器对它的部分记录没能清除。\n%w", name, errors.Join(errs...))
 		log.Printf("remove: %v", joined)
 		return dest, joined
 	}

@@ -16,41 +16,41 @@ func TestSyncResultMessage(t *testing.T) {
 		{
 			name: "nothing to do",
 			rep:  &SyncReport{},
-			want: "Copied 0 conversations into Work.",
+			want: "已复制 0 个对话到 Work。",
 		},
 		{
 			name: "one copied reads as singular",
 			rep:  &SyncReport{CopiedCount: 1},
-			want: "Copied 1 conversation into Work.",
+			want: "已复制 1 个对话到 Work。",
 		},
 		{
 			name: "several copied",
 			rep:  &SyncReport{CopiedCount: 12},
-			want: "Copied 12 conversations into Work.",
+			want: "已复制 12 个对话到 Work。",
 		},
 		{
 			// A sync that copied little because the target was already ahead would
 			// otherwise read as a sync that did nothing.
 			name: "one already-newer reads as singular throughout",
 			rep:  &SyncReport{CopiedCount: 0, ConflictCount: 1},
-			want: "Copied 0 conversations into Work. 1 conversation was already newer here and left alone.",
+			want: "已复制 0 个对话到 Work。另有 1 个对话在这边已经是更新的版本，保持不动。",
 		},
 		{
 			name: "several already-newer",
 			rep:  &SyncReport{CopiedCount: 3, ConflictCount: 16},
-			want: "Copied 3 conversations into Work. 16 conversations were already newer here and left alone.",
+			want: "已复制 3 个对话到 Work。另有 16 个对话在这边已经是更新的版本，保持不动。",
 		},
 		{
 			// The walk continues past a file it cannot read, so this count is the
 			// only thing that would ever mention it.
 			name: "one skipped file",
 			rep:  &SyncReport{CopiedCount: 2, SkipErrors: []string{"a.json: boom"}},
-			want: "Copied 2 conversations into Work. 1 file could not be read and was skipped (see the log).",
+			want: "已复制 2 个对话到 Work。有 1 个文件读不了，已跳过（详见日志）。",
 		},
 		{
 			name: "clashes and skips together",
 			rep:  &SyncReport{CopiedCount: 1, ConflictCount: 2, SkipErrors: []string{"a: x", "b: y"}},
-			want: "Copied 1 conversation into Work. 2 conversations were already newer here and left alone. 2 files could not be read and were skipped (see the log).",
+			want: "已复制 1 个对话到 Work。另有 2 个对话在这边已经是更新的版本，保持不动。有 2 个文件读不了，已跳过（详见日志）。",
 		},
 	}
 	for _, c := range cases {
@@ -76,7 +76,7 @@ func TestSyncFailureMessageTranslatesTheUnknownProfileAbort(t *testing.T) {
 	// here, because profile detection matches the --user-data-dir argument MCS
 	// passes. They need an action, not the reason.
 	got := SyncFailureMessage(fmt.Errorf("%w: ps output had no match", ErrRunningProfileUnknown))
-	if got != "Quit Claude Desktop first, then try Sync again." {
+	if got != "请先退出 Claude Desktop，然后再试一次同步。" {
 		t.Errorf("got %q", got)
 	}
 	if strings.Contains(got, "--user-data-dir") || strings.Contains(got, "ps output") {

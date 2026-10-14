@@ -160,7 +160,7 @@ func renderProgress(vm *ProgressVM) string {
 			inner = `<div class="prog-mark ok">&#10003;</div>
     <h2>` + esc(vm.Title) + `</h2>` + detail + `
     <div class="prog-warn">` + esc(vm.Warn) + `</div>
-    <button class="btn btn-light" onclick="` + dismiss + `">Close</button>`
+    <button class="btn btn-light" onclick="` + dismiss + `">关闭</button>`
 			break
 		}
 		// Dismisses itself: the work is over, and a card the user has to close
@@ -173,14 +173,14 @@ func renderProgress(vm *ProgressVM) string {
 		// Never a claim about what was or was not changed: these operations can
 		// fail after Claude has already been closed, and "nothing was changed"
 		// would be a lie in exactly the case the user most needs the truth.
-		msg := "It did not finish."
+		msg := "没有完成。"
 		if vm.Err != "" {
 			msg = vm.Err
 		}
 		inner = `<div class="prog-mark bad">!</div>
     <h2>` + esc(vm.Title) + `</h2>
     <p class="prog-err">` + esc(msg) + `</p>
-    <button class="btn btn-light" onclick="` + dismiss + `">Close</button>`
+    <button class="btn btn-light" onclick="` + dismiss + `">关闭</button>`
 	default:
 		// No Close button and no timer. Closing it would leave the user looking
 		// at an ordinary screen while Claude is shut, with nothing saying why,
@@ -197,8 +197,8 @@ func renderProgress(vm *ProgressVM) string {
 // SwitchStarting is the card raised the moment a switch begins.
 func SwitchStarting() *ProgressVM {
 	return &ProgressVM{
-		Title:  "Switching profile",
-		Detail: "Claude will restart in a moment.",
+		Title:  "正在切换账号",
+		Detail: "Claude 马上会重新启动。",
 	}
 }
 
@@ -213,12 +213,12 @@ func SwitchOutcome(target string, err error) *ProgressVM {
 	if err != nil {
 		var warn *core.SwitchedWithWarning
 		if !errors.As(err, &warn) {
-			return &ProgressVM{Phase: ProgressFailed, Title: "Switch failed", Err: err.Error()}
+			return &ProgressVM{Phase: ProgressFailed, Title: "切换失败", Err: err.Error()}
 		}
 	}
-	vm := &ProgressVM{Phase: ProgressDone, Title: "Switched successfully"}
+	vm := &ProgressVM{Phase: ProgressDone, Title: "切换成功"}
 	if target != "" {
-		vm.Detail = "You are now on " + target + "."
+		vm.Detail = "现在使用的是 " + target + "。"
 	}
 	if err != nil {
 		// The card waits to be closed, so the panel waits with it: hiding it
@@ -237,8 +237,8 @@ func SwitchOutcome(target string, err error) *ProgressVM {
 // SyncStarting is the card raised while a manual sync runs.
 func SyncStarting() *ProgressVM {
 	return &ProgressVM{
-		Title:   "Syncing conversations",
-		Detail:  "Claude closes while this runs, and reopens when it is done.",
+		Title:   "正在同步对话",
+		Detail:  "进行期间 Claude 会关闭，完成后重新打开。",
 		Dismiss: "showSync",
 	}
 }
@@ -252,13 +252,13 @@ func SyncStarting() *ProgressVM {
 func SyncOutcome(target string, rep *core.SyncReport, err error) *ProgressVM {
 	if err != nil {
 		return &ProgressVM{
-			Phase: ProgressFailed, Title: "Sync failed",
+			Phase: ProgressFailed, Title: "同步失败",
 			Err: core.SyncFailureReason(err), Dismiss: "showSync",
 		}
 	}
 	summary, skipped := core.SyncResultParts(rep, target)
 	return &ProgressVM{
-		Phase: ProgressDone, Title: "Sync finished",
+		Phase: ProgressDone, Title: "同步完成",
 		Detail: summary, Warn: skipped, Dismiss: "showSync",
 	}
 }
@@ -266,8 +266,8 @@ func SyncOutcome(target string, rep *core.SyncReport, err error) *ProgressVM {
 // MergeStarting is the card raised while two duplicate accounts are merged.
 func MergeStarting() *ProgressVM {
 	return &ProgressVM{
-		Title:  "Merging accounts",
-		Detail: "Claude closes while this runs, and reopens when it is done.",
+		Title:  "正在合并账号",
+		Detail: "进行期间 Claude 会关闭，完成后重新打开。",
 	}
 }
 
@@ -276,11 +276,11 @@ func MergeStarting() *ProgressVM {
 // confirmation, and on failure the list is where the user tries again from.
 func MergeOutcome(err error) *ProgressVM {
 	if err != nil {
-		return &ProgressVM{Phase: ProgressFailed, Title: "Merge failed", Err: err.Error()}
+		return &ProgressVM{Phase: ProgressFailed, Title: "合并失败", Err: err.Error()}
 	}
 	return &ProgressVM{
-		Phase: ProgressDone, Title: "Accounts merged",
-		Detail: "The two accounts are now one.",
+		Phase: ProgressDone, Title: "账号已合并",
+		Detail: "两个账号现在合成了一个。",
 	}
 }
 
@@ -289,13 +289,13 @@ func MergeOutcome(err error) *ProgressVM {
 // closes and a clean one opens, and the name screen has no status line of its
 // own, so without the card the Add button looked like it had not been pressed.
 func AddAccountStarting(recovering bool) *ProgressVM {
-	title := "Adding the account"
+	title := "正在添加账号"
 	if recovering {
-		title = "Recovering the account"
+		title = "正在恢复账号"
 	}
 	return &ProgressVM{
 		Title:  title,
-		Detail: "Claude closes, your current account is saved, and a clean Claude opens.",
+		Detail: "Claude 会关闭，当前账号会保存好，然后打开一个全新的 Claude。",
 	}
 }
 
@@ -304,17 +304,17 @@ func AddAccountStarting(recovering bool) *ProgressVM {
 // just opened. Failures do not use a card: they return to the name screen
 // with the reason and the typed name, where the user can try again.
 func AddAccountDone(name string, recovering bool) *ProgressVM {
-	vm := &ProgressVM{Phase: ProgressDone, Title: "Account added"}
+	vm := &ProgressVM{Phase: ProgressDone, Title: "账号已添加"}
 	if recovering {
-		vm.Title = "Account recovered"
+		vm.Title = "账号已恢复"
 	}
-	vm.Detail = "Sign in to " + name + " in the Claude window that just opened."
+	vm.Detail = "请在刚打开的 Claude 窗口里登录 " + name + "。"
 	return vm
 }
 
 // BackupStarting is the card raised while every account is backed up.
 func BackupStarting() *ProgressVM {
-	return &ProgressVM{Title: "Backing up accounts", Dismiss: "showSettings"}
+	return &ProgressVM{Title: "正在备份账号", Dismiss: "showSettings"}
 }
 
 // BackupOutcome reports how many accounts were backed up, and how many tried
@@ -328,29 +328,27 @@ func BackupStarting() *ProgressVM {
 func BackupOutcome(done, failed int) *ProgressVM {
 	if done == 0 && failed > 0 {
 		return &ProgressVM{
-			Phase: ProgressFailed, Title: "Backup failed",
-			Err:     plural(failed, "account", "accounts") + " could not be backed up (see the log).",
+			Phase: ProgressFailed, Title: "备份失败",
+			Err:     plural(failed) + "备份失败（详见日志）。",
 			Dismiss: "showSettings",
 		}
 	}
-	vm := &ProgressVM{Phase: ProgressDone, Title: "Backup finished", Dismiss: "showSettings"}
+	vm := &ProgressVM{Phase: ProgressDone, Title: "备份完成", Dismiss: "showSettings"}
 	switch {
 	case done == 0:
-		vm.Title = "Nothing to back up"
-		vm.Detail = "No account had any conversations stored yet."
+		vm.Title = "没有需要备份的内容"
+		vm.Detail = "还没有任何账号存有对话。"
 	default:
-		vm.Detail = "Backed up " + plural(done, "account", "accounts") + "."
+		vm.Detail = "已备份 " + plural(done) + "。"
 	}
 	if failed > 0 {
-		vm.Warn = plural(failed, "other account", "other accounts") + " could not be backed up (see the log)."
+		vm.Warn = "另有 " + plural(failed) + "备份失败（详见日志）。"
 	}
 	return vm
 }
 
-// plural renders a count with its noun, so "1 accounts" never reaches a screen.
-func plural(n int, one, many string) string {
-	if n == 1 {
-		return "1 " + one
-	}
-	return strconv.Itoa(n) + " " + many
+// plural renders a count of accounts. Chinese has no plural form, so it is
+// only the count and its measure word.
+func plural(n int) string {
+	return strconv.Itoa(n) + " 个账号"
 }

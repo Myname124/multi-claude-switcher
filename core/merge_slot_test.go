@@ -41,7 +41,7 @@ func TestMergeRefusesWhenPrepareArchiveHandsBackOneFolderForBoth(t *testing.T) {
 	if err == nil {
 		t.Fatal("want a refusal when both paths are the same folder, got nil")
 	}
-	if !strings.Contains(err.Error(), "Rescan") {
+	if !strings.Contains(err.Error(), "重新扫描") {
 		t.Errorf("the message should tell the user what to do next: %v", err)
 	}
 

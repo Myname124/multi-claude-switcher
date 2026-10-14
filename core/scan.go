@@ -75,16 +75,16 @@ type GhostSource struct {
 // SignedOutNote is the review note for a profile folder awaiting its one-time
 // sign-in. Sign-in is per folder and permanent, so this is a single step, not
 // something the user will have to repeat on every switch.
-const SignedOutNote = "Not signed in yet. Select it here, then switch to it and sign in."
+const SignedOutNote = "还没登录。在这里勾选它，然后切换过去登录。"
 
 // RecoverableGhostNote is the review note for an account that was signed out
 // inside Claude Desktop. It is deliberately not phrased as a defect: the data is
 // intact, and what is missing is a profile that claims the account.
-const RecoverableGhostNote = "Its conversations are still here. Recover to sign back in."
+const RecoverableGhostNote = "它的对话都还在。点「恢复」重新登录。"
 
 // PendingSignInNote is the note on a profile MCS has just created. The user has
 // been sent to sign in to it, so it has to stay listed until they do.
-const PendingSignInNote = "Sign in to finish setting this up."
+const PendingSignInNote = "登录后即可完成设置。"
 
 type bucketStat struct {
 	Count       int
@@ -113,7 +113,7 @@ type dirScan struct {
 // accounts.
 func deriveNote(complete bool, acct AccountType) string {
 	if !complete {
-		return "Invalid account data"
+		return "账号数据无效"
 	}
 	return ""
 }

@@ -2,7 +2,6 @@ package platform
 
 import (
 	"path/filepath"
-	"runtime"
 	"testing"
 )
 
@@ -32,15 +31,12 @@ func TestSamePath(t *testing.T) {
 	}
 }
 
-// TestSamePathCasing asserts the host's own rule rather than one fixed answer:
-// Windows spells the same directory in whatever case it likes, and elsewhere two
-// directories differing only in case are two directories.
+// TestSamePathCasing: Windows spells the same directory in whatever case it
+// likes, so two spellings differing only in case are one directory.
 func TestSamePathCasing(t *testing.T) {
 	lower := filepath.Join("users", "x", "claude")
 	upper := filepath.Join("Users", "X", "Claude")
-
-	want := runtime.GOOS == "windows"
-	if got := SamePath(lower, upper); got != want {
-		t.Errorf("SamePath(%q, %q) = %v, want %v on %s", lower, upper, got, want, runtime.GOOS)
+	if !SamePath(lower, upper) {
+		t.Errorf("SamePath(%q, %q) = false, want true", lower, upper)
 	}
 }

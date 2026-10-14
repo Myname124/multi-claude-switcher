@@ -1,5 +1,43 @@
 # CHANGELOG
 
+## [0.14.0] - 2026-10-14
+
+The first release of this fork. From here on every push to `main` that changes
+code is released automatically as the next patch version, with notes generated
+from its commits on the GitHub release page.
+
+### Removed
+- **macOS and Linux.** The project is Windows-only. Gone: the macOS menu-bar
+  app (`cmd/mcs-menubar`) and its `.app` packaging, the account picker helper
+  (`cmd/mcs-picker`), the old static tray menu that only macOS and Linux used,
+  the macOS and Linux platform layers, Keychain decryption for usage, the
+  macOS-only icons and probe script, and the macOS and Linux CI legs and
+  release job. `go.mod` no longer needs `webview_go`. Tests that could only
+  ever run on macOS or Linux went with them.
+
+### Added
+- **Each account shows its 5-hour and weekly usage.** Two bars under every
+  signed-in account, with the time each limit resets, amber from 70% and red
+  from 90%. They are read from Anthropic with the sign-in token Claude Desktop
+  already keeps in that profile, refreshed each time the panel opens (at most
+  once a minute), and the last reading is kept for accounts whose token has
+  lapsed. macOS asks once for access to the "Claude Safe Storage" Keychain
+  item. `mcs usage` prints the same from a terminal.
+
+### Changed
+- **The interface is in Simplified Chinese.** Every panel screen, dialog,
+  progress card, tray menu item and notification, plus the messages core writes
+  for the panel (sync results, scan notes, name checks, removal and merge
+  explanations). Low-level technical errors that wrap operating-system text,
+  and the command-line tool, stay in English.
+- **Updates, problem reports, the About dialog and the changelog link now
+  point at the `Myname124/multi-claude-switcher` fork** instead of upstream.
+- **The release workflow no longer updates a Homebrew tap.** That step pushed
+  to the upstream author's tap with a token this fork does not have.
+- **The Chinese README is now Simplified Chinese** (`README.zh-CN.md`,
+  replacing `README.zh-TW.md`), and the language switcher reads
+  `English | 简体中文`.
+
 ## [0.13.6] - 2026-09-28
 
 ### Added

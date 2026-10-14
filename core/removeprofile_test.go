@@ -191,7 +191,7 @@ func TestRemoveProfileRefusesAProfileThatIsGone(t *testing.T) {
 	if err == nil {
 		t.Fatal("RemoveProfile accepted an identity with no directory behind it")
 	}
-	if want := "Claude_Ghost is no longer there. Run Rescan"; err.Error() != want {
+	if want := "Claude_Ghost 已经不在了。请重新扫描"; err.Error() != want {
 		t.Fatalf("the refusal did not come from RemoveProfile's own guard:\ngot  %q\nwant %q", err, want)
 	}
 }
@@ -280,12 +280,12 @@ func TestRemoveProfileReportsARegistryThatCannotBeWritten(t *testing.T) {
 	// was blocked here, so any other complaint means the test is being satisfied
 	// by a failure it did not arrange, and the display name is the one whose loss
 	// the user actually feels.
-	if !strings.Contains(err.Error(), `Its name is still recorded as "Old one"`) {
+	if !strings.Contains(err.Error(), `它的名字仍记录为 "Old one"`) {
 		t.Fatalf("the display name is not what was reported as unclearable: %v", err)
 	}
 	// It also has to be readable on the screen it lands on: a whole sentence
 	// naming the account, with the joined entries on their own lines.
-	if !strings.HasPrefix(err.Error(), "Old one was removed, but ") {
+	if !strings.HasPrefix(err.Error(), "Old one 已移除，但") {
 		t.Fatalf("the complaint does not open by saying the removal did happen: %v", err)
 	}
 	if !strings.Contains(err.Error(), "\n") {

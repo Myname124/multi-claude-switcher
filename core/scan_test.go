@@ -77,7 +77,7 @@ func TestAssembleMultiDirSameLive(t *testing.T) {
 }
 
 func TestDeriveNote(t *testing.T) {
-	if deriveNote(false, AccountTeam) != "Invalid account data" {
+	if deriveNote(false, AccountTeam) != "账号数据无效" {
 		t.Fatal("incomplete → invalid, regardless of type")
 	}
 	// A Team account is not a problem to warn about: its conversations sync like
@@ -273,7 +273,7 @@ func TestAssembleGhostEmptyBucketIsNotRecoverable(t *testing.T) {
 	if len(ghost.Sources) != 0 {
 		t.Fatalf("a dead ghost has nothing to copy from: %+v", ghost.Sources)
 	}
-	if ghost.Note != "Invalid account data" {
+	if ghost.Note != "账号数据无效" {
 		t.Fatalf("dead ghost keeps its existing note, got %q", ghost.Note)
 	}
 }

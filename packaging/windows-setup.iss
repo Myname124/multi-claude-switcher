@@ -17,8 +17,8 @@
 
 #define MyAppName "Multi-Claude Switcher"
 #define MyAppExeName "mcs-tray.exe"
-#define MyAppPublisher "miou1107"
-#define MyAppURL "https://github.com/miou1107/multi-claude-switcher"
+#define MyAppPublisher "Myname124"
+#define MyAppURL "https://github.com/Myname124/multi-claude-switcher"
 #ifndef MyAppVersion
   #define MyAppVersion "0.0.0-dev"
 #endif
