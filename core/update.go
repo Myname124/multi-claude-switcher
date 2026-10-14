@@ -12,7 +12,7 @@ import (
 )
 
 // LatestReleaseURL is the GitHub API endpoint for this project's latest release.
-const LatestReleaseURL = "https://api.github.com/repos/miou1107/multi-claude-switcher/releases/latest"
+const LatestReleaseURL = "https://api.github.com/repos/Myname124/multi-claude-switcher/releases/latest"
 
 // IsNewer reports whether the remote version string is strictly newer than the
 // local one. Both may carry a leading "v" and a pre-release/build suffix

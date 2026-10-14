@@ -28,7 +28,7 @@ import (
 
 // releasesPageURL is the human download page. It is only reached when an update
 // could not be applied on its own, and only for a check the user asked for.
-const releasesPageURL = "https://github.com/miou1107/multi-claude-switcher/releases/latest"
+const releasesPageURL = "https://github.com/Myname124/multi-claude-switcher/releases/latest"
 
 // updateDirName is the scratch directory the installer is downloaded to. It is
 // a fixed name rather than a random temp dir on purpose: this process exits
