@@ -7,7 +7,7 @@ import (
 
 // issueBase is where a problem report goes. A public repository, which is why
 // the confirm step says so in those words.
-const issueBase = "https://github.com/miou1107/multi-claude-switcher/issues/new"
+const issueBase = "https://github.com/Myname124/multi-claude-switcher/issues/new"
 
 // maxTitleRunes keeps the title readable in a list and the URL well short of the
 // roughly 8 KB a prefilled issue link tolerates.

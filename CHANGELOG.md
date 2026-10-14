@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## [Unreleased]
+
+### Changed
+- **Updates, problem reports, the About dialog and the changelog link now
+  point at the `Myname124/multi-claude-switcher` fork** instead of upstream.
+- **The Chinese README is now Simplified Chinese** (`README.zh-CN.md`,
+  replacing `README.zh-TW.md`), and the language switcher reads
+  `English | 简体中文`.
+
 ## [0.13.6] - 2026-09-28
 
 ### Added

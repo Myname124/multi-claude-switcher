@@ -7,7 +7,7 @@
 - `.github/workflows/ci.yml` — GitHub Actions: runs the same three-platform `go vet` + `go test ./... -count=1` matrix as the release gate, but on every branch push and pull request instead of only on a tag, so a broken test surfaces when it lands rather than when someone tries to ship. Builds and publishes nothing.
 - `go.sum` — Go module checksum file.
 - `README.md` — User-facing overview: what it does, install, usage, troubleshooting (English). Reference and contributor material lives in `docs/`.
-- `README.zh-TW.md` — Traditional Chinese counterpart of the README (mirrors its structure).
+- `README.zh-CN.md` — Simplified Chinese counterpart of the README (mirrors its structure).
 - `FILELIST.md` — Inventory of project files and purpose.
 - `CHANGELOG.md` — Project version and change history.
 - `LICENSE` — MIT license text.

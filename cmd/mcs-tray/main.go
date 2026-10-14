@@ -472,7 +472,7 @@ func showAbout() {
 		"Version " + core.Version,
 		"",
 		"Seamless multi-account switcher for Claude Desktop.",
-		"github.com/miou1107/multi-claude-switcher",
+		"github.com/Myname124/multi-claude-switcher",
 	}
 	infoDialog("About Multi-Claude Switcher", strings.Join(lines, "\n"))
 }
