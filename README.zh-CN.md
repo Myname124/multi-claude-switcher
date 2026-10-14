@@ -27,7 +27,7 @@
 3. **记录不打架**：各账号的 Code 对话记录原封不动、互不干扰。单纯切换完全不会
    动到任何 session 数据。
 4. **跨账号对话记录同步**：当然你也可以勾选自动同步(或手动同步)，让所有账号的对话记录保持一致，方便你跨账号开发。
-<img src="docs/assets/panel.png" width="400" alt="面板列出三个账号：Work 是 Team 方案并标示为目前账号、Personal 是 Max 20×、Side project 是 Pro，下方是 Rescan 和 Settings 按钮" />
+<img src="docs/assets/panel.png" width="400" alt="面板列出三个账号，每个都带 5 小时和每周额度条：Work 是 Team 方案并标示为目前账号、Personal 是 Max 20×、Side project 是 Pro，下方是 Rescan 和 Settings 按钮" />
 
 ---
 
@@ -100,6 +100,25 @@ xattr -dr com.apple.quarantine "/Applications/Multi-Claude Switcher.app"
 
 按 **Esc** 或点面板外面就关掉。Windows 上再点一次系统托盘图标也会关，对图标按右键有
 **Quit**，万一面板本身开不起来，那是你的逃生门。
+
+## 额度查询
+
+每个已登录的账号下面都会显示 **5 小时额度**和**每周额度**用了多少，以及各自什么时候重置。
+用到 70% 时进度条变黄，90% 时变红，切换之前就能看出哪个账号还有余量。
+
+这些数字来自 Anthropic，和 Claude Code 里 `/usage` 读的是同一个地方。面板会先把账号列表画出来，
+稍后再把额度条补上；每次打开面板都会刷新，最多一分钟一次。
+
+读取方式：每个账号的配置文件夹里本来就存着 Claude Desktop 用的登录 token。切换器在本地把它解密，
+只发给签发它的 `api.anthropic.com`。它从不续期这个 token，因为续期会让 Claude Desktop 掉登录。
+所以一个很久没打开的账号可能会显示 *Open this account in Claude once to refresh its usage*
+（在 Claude 里打开一次这个账号就能刷新）；在那之前它会继续显示上一次的读数，已经过了重置时间的额度显示为 0%。
+
+- **macOS** 第一次会询问是否允许 Multi-Claude Switcher 使用钥匙串里的「Claude Safe Storage」，
+  Claude 用它保管登录信息的密钥。请选**始终允许**。因为 app 没有经过 Apple 公证，更新后可能会再问一次。
+- **Windows** 不会弹出提示：密钥受你的 Windows 账户保护。
+
+读数只有百分比和时间，缓存在 `~/.multi-claude-switcher/usage.json`。想在终端里查看，可以运行 `mcs usage`。
 
 ## 把对话搬到另一个账号
 

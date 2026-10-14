@@ -6,8 +6,10 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/miou1107/multi-claude-switcher/core"
+	"github.com/miou1107/multi-claude-switcher/core/usage"
 	"github.com/miou1107/multi-claude-switcher/platform"
 )
 
@@ -20,6 +22,7 @@ func printUsage() {
 	fmt.Println("  mcs switch <Src> <Dst> [-y]    Perform safe switch from Src profile to Dst profile")
 	fmt.Println("                                 Closes Claude Desktop, so it asks first; -y skips the prompt")
 	fmt.Println("  mcs restore <BackupPath> <Dst> Restore sessions from backup")
+	fmt.Println("  mcs usage                      Show each signed-in account's 5-hour and weekly usage")
 	fmt.Println("  mcs help                       Show this help message")
 }
 
@@ -45,6 +48,25 @@ func main() {
 	switcher := core.NewSwitcher(plat, bm)
 
 	switch command {
+	case "usage":
+		profiles, err := plat.FindProfiles()
+		if err != nil {
+			fmt.Printf("Error finding profiles: %v\n", err)
+			os.Exit(1)
+		}
+		for _, p := range profiles {
+			if _, err := platform.GetProfileAccountUUID(p.Path); err != nil {
+				continue // not signed in
+			}
+			fmt.Printf("%s\n", core.DisplayName(p.Name))
+			u, err := usage.ReadProfile(p.Path)
+			if err != nil {
+				fmt.Printf("   error: %v\n", err)
+				continue
+			}
+			printWindow("5-hour", u.FiveHour)
+			printWindow("weekly", u.SevenDay)
+		}
 	case "status":
 		profiles, err := plat.FindProfiles()
 		if err != nil {
@@ -208,6 +230,20 @@ func profileIdentityFor(plat platform.Platform, path string) string {
 		}
 	}
 	return ""
+}
+
+// printWindow prints one usage window for `mcs usage`.
+func printWindow(label string, w *usage.Window) {
+	if w == nil {
+		fmt.Printf("   %-7s not reported\n", label)
+		return
+	}
+	eff := w.Effective(time.Now())
+	reset := "reset time not reported"
+	if !eff.ResetsAt.IsZero() {
+		reset = "resets " + eff.ResetsAt.Local().Format("Mon Jan 2 15:04")
+	}
+	fmt.Printf("   %-7s %3.0f%%  (%s)\n", label, eff.Percent, reset)
 }
 
 func resolveProfilePath(plat platform.Platform, nameOrPath string) string {

@@ -2,9 +2,20 @@
 
 ## [Unreleased]
 
+### Added
+- **Each account shows its 5-hour and weekly usage.** Two bars under every
+  signed-in account, with the time each limit resets, amber from 70% and red
+  from 90%. They are read from Anthropic with the sign-in token Claude Desktop
+  already keeps in that profile, refreshed each time the panel opens (at most
+  once a minute), and the last reading is kept for accounts whose token has
+  lapsed. macOS asks once for access to the "Claude Safe Storage" Keychain
+  item. `mcs usage` prints the same from a terminal.
+
 ### Changed
 - **Updates, problem reports, the About dialog and the changelog link now
   point at the `Myname124/multi-claude-switcher` fork** instead of upstream.
+- **The release workflow no longer updates a Homebrew tap.** That step pushed
+  to the upstream author's tap with a token this fork does not have.
 - **The Chinese README is now Simplified Chinese** (`README.zh-CN.md`,
   replacing `README.zh-TW.md`), and the language switcher reads
   `English | 简体中文`.

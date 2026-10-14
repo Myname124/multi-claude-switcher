@@ -40,6 +40,11 @@ type ProfileVM struct {
 	// account list groups by it to spot two profiles holding one account, which
 	// is a state the user has to resolve.
 	UUID string
+
+	// Usage is the account's 5-hour and weekly limits, nil when unknown. It is
+	// filled by AttachUsage, not BuildProfiles, because it arrives later: the
+	// list is drawn at once and redrawn when a background read finishes.
+	Usage *UsageVM
 }
 
 // planPill renders the subscription badge for an account.
@@ -126,6 +131,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","SF Pro Text",syste
 .pill-team{background:#d6f5e3;color:#1a8a4f}
 .pill-personal{background:#eceaf3;color:#6b6580}
 .pill-plan{background:#ece8fb;color:#6a4fd0}
+.usage{margin-top:6px;display:flex;flex-direction:column;gap:3px}
+.urow{display:flex;align-items:center;gap:6px;font-size:10.5px;color:#8b8598}
+.ulabel{width:30px;flex:none;font-weight:700;color:#6b6580}
+.ubar{width:72px;flex:none;height:6px;border-radius:999px;background:#eceaf3;overflow:hidden}
+.ubar i{display:block;height:100%;border-radius:999px}
+.u-ok{background:#1fa35c}
+.u-mid{background:#e0a020}
+.u-hi{background:#c0392b}
+.upct{width:32px;flex:none;text-align:right;font-weight:700;color:#3d3750}
+.ureset{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.unote{font-size:10.5px;color:#8b8598;line-height:1.35}
 .addcard{display:flex;align-items:center;justify-content:center;gap:7px;background:transparent;border:2px dashed #cdc8e0;border-radius:14px;padding:13px 14px;cursor:pointer;font:inherit;font-size:13px;font-weight:800;color:#6b6580;width:100%}
 .addcard:hover{border-color:#7c6cf0;color:#7c6cf0;background:#faf9ff}
 .note-bad{margin-top:5px;display:inline-block;font-size:10.5px;font-weight:700;background:#fde4e4;color:#c0392b;padding:2px 8px;border-radius:999px}
@@ -709,8 +725,8 @@ func RenderList(profiles []ProfileVM, canAddAccount bool, status string) string 
 		if p.Current {
 			cards.WriteString(fmt.Sprintf(`
       <div class="card current" data-folder="%s" data-name="%s"><div class="dotcur"></div>
-        <div class="body"><div class="viewrow row1"><span class="name">%s</span>%s%s</div><div class="sub-current viewrow">In use now</div>%s</div>%s</div>`,
-				esc(p.Folder), esc(p.Name), esc(p.Name), badge, dupPill, edit, menu))
+        <div class="body"><div class="viewrow row1"><span class="name">%s</span>%s%s</div><div class="sub-current viewrow">In use now</div>%s%s</div>%s</div>`,
+				esc(p.Folder), esc(p.Name), esc(p.Name), badge, dupPill, usageBlock(p.Usage), edit, menu))
 			continue
 		}
 		// A profile with no account yet is still switchable: switching to it is
@@ -729,8 +745,8 @@ func RenderList(profiles []ProfileVM, canAddAccount bool, status string) string 
 		// toggle, so there is nothing to keep in sync separately.
 		cards.WriteString(fmt.Sprintf(`
       <div class="card selectable" data-folder="%s" data-name="%s" onclick="if(!this.classList.contains('renaming'))askSwitch(this.dataset.folder,this.dataset.name)"><div class="chev">⇄</div>
-        <div class="body"><div class="viewrow row1"><span class="name">%s</span>%s%s</div>%s%s</div>%s</div>`,
-			esc(p.Folder), esc(p.Name), esc(p.Name), badge, dupPill, sub, edit, menu))
+        <div class="body"><div class="viewrow row1"><span class="name">%s</span>%s%s</div>%s%s%s</div>%s</div>`,
+			esc(p.Folder), esc(p.Name), esc(p.Name), badge, dupPill, sub, usageBlock(p.Usage), edit, menu))
 	}
 	if len(profiles) == 0 {
 		cards.WriteString(`<div class="empty">No managed accounts yet. Run Rescan to add some.</div>`)

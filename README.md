@@ -33,7 +33,7 @@ left. Enough friction that most people stop bothering.
 3. **Histories stay separate.** Each account's Code conversations are left
    exactly as they were. A plain switch never touches session data at all.
 
-<img src="docs/assets/panel.png" width="400" alt="The panel listing three accounts: Work on a Team plan marked as the current account, Personal on Max 20×, and Side project on Pro, above Rescan and Settings buttons" />
+<img src="docs/assets/panel.png" width="400" alt="The panel listing three accounts, each with its 5-hour and weekly usage bars: Work on a Team plan marked as the current account, Personal on Max 20×, and Side project on Pro, above Rescan and Settings buttons" />
 
 ---
 
@@ -134,6 +134,34 @@ to see what changed in each release.
 Press **Esc** or click outside to close the panel. On Windows the tray icon
 toggles it, and right-clicking gives you **Quit**, which is your way out if the
 panel itself will not open.
+
+## Usage limits
+
+Each signed-in account shows how much of its **5-hour** and **weekly** limits
+it has used, with the time each one resets. The bar turns amber at 70% and red
+at 90%, so you can see which account still has room before switching to it.
+
+The numbers come from Anthropic, from the same place Claude Code's `/usage`
+reads them. The panel draws the list at once and fills the bars in a moment
+later; they refresh each time you open the panel, at most once a minute.
+
+How it gets them: each account's profile already holds the sign-in token
+Claude Desktop uses. The switcher decrypts it locally and sends it only to
+`api.anthropic.com`, which issued it. It never renews the token, because
+renewing would sign Claude Desktop out. So an account you have not opened for a
+while may say *Open this account in Claude once to refresh its usage*; until
+then it keeps showing its last reading, and a window whose reset time has
+passed shows as 0%.
+
+- **macOS** asks once whether Multi-Claude Switcher may use "Claude Safe
+  Storage" from your Keychain. That is where Claude keeps the key to its saved
+  sign-ins. Choose **Always Allow**. After an update macOS may ask again,
+  because the app is not notarized.
+- **Windows** needs no prompt: the key is protected by your Windows account.
+
+Readings, which are only percentages and times, are cached in
+`~/.multi-claude-switcher/usage.json`. To check from a terminal, run
+`mcs usage`.
 
 ## Moving conversations between accounts
 

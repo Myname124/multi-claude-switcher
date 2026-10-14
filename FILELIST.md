@@ -3,7 +3,7 @@
 - `.gitignore` — Git ignore rules.
 - `.gitattributes` — Marks binary assets (`.syso`, `.ico`, `.icns`, `.png`, `.zip`) so Git never applies line-ending conversion that would corrupt them.
 - `go.mod` — Go module definition file.
-- `.github/workflows/release.yml` — GitHub Actions: on a `v*` tag, runs `go vet` and `go test ./... -count=1` on Windows, macOS and Linux (CGO per leg, matching how each platform ships) and gates both build jobs on it, so a tag cannot publish a build whose tests fail; then builds the universal macOS `.app` (version injected) and the Windows `setup.exe` installer, publishes them to a GitHub Release, and bumps the multi-claude-switcher cask in `miou1107/homebrew-tap` to the new version + macOS zip SHA256 (needs the `HOMEBREW_TAP_TOKEN` secret).
+- `.github/workflows/release.yml` — GitHub Actions: on a `v*` tag, runs `go vet` and `go test ./... -count=1` on Windows, macOS and Linux (CGO per leg, matching how each platform ships) and gates both build jobs on it, so a tag cannot publish a build whose tests fail; then builds the universal macOS `.app` (version injected) and the Windows `setup.exe` installer, and publishes them to a GitHub Release.
 - `.github/workflows/ci.yml` — GitHub Actions: runs the same three-platform `go vet` + `go test ./... -count=1` matrix as the release gate, but on every branch push and pull request instead of only on a tag, so a broken test surfaces when it lands rather than when someone tries to ship. Builds and publishes nothing.
 - `go.sum` — Go module checksum file.
 - `README.md` — User-facing overview: what it does, install, usage, troubleshooting (English). Reference and contributor material lives in `docs/`.
@@ -13,7 +13,7 @@
 - `LICENSE` — MIT license text.
 - `bin/mcs` — Compiled CLI binary executable.
 - `bin/mcs-tray` — Compiled System Tray GUI binary executable.
-- `cmd/mcs/main.go` — Go CLI entry point (`mcs status`, `sync`, `switch`, `backup`, `restore`).
+- `cmd/mcs/main.go` — Go CLI entry point (`mcs status`, `usage`, `sync`, `switch`, `backup`, `restore`).
 - `cmd/mcs-tray/main.go` — Go System Tray GUI entry point (cross-platform menu-bar / tray quick switcher).
 - `cmd/mcs-tray/trayicon_darwin.go` — macOS tray icon (template PNG via SetTemplateIcon).
 - `platform/protocolhandler_windows.go` — Points the `claude://` URL handler (`HKCU\Software\Classes\claude\shell\open\command`) at the profile Claude was launched on for as long as Claude runs on it (every profile except the default one), so a sign-in callback opens the profile the user switched to rather than the default one, and restores Claude Desktop's own registration once that Claude closes or the switcher exits. A restarted panel resumes or restores it (`ResumeProtocolHandlerHold` in `windows.go`). Re-reads the exe path on every write and rewrites the pristine form to restore, so a Claude update cannot leave a stale path behind.
@@ -65,6 +65,15 @@
 - `core/loginitem_darwin_test.go` — Unit tests for macOS login-item enable/disable and plist contents (stubbed dir).
 - `core/loginitem_windows_test.go` — Unit tests for Windows login-item enable/disable via a throwaway registry key.
 - `core/update.go` — Update check against GitHub Releases (version compare, latest-release fetch, download).
+- `core/usage/usage.go` — Reads an account's 5-hour and weekly limits from `api.anthropic.com/api/oauth/usage`; maps HTTP failures to errors the panel can word, and treats a window past its reset time as unused.
+- `core/usage/token.go` — Finds the OAuth access tokens in a profile's `config.json` (`oauth:tokenCache*`), decrypted, read by shape, ordered by scope and expiry; expired tokens are dropped and never renewed.
+- `core/usage/safestorage.go` — Electron safeStorage (Chromium OSCrypt v10) decryption: AES-128-CBC with a PBKDF2 key on macOS, AES-256-GCM on Windows, plus every encoding the stored value may use.
+- `core/usage/key_darwin.go` — macOS: reads the "Claude Safe Storage" Keychain password through the Security framework (cgo), so "Always Allow" trusts this app only.
+- `core/usage/key_darwin_nocgo.go` — macOS without cgo: reports usage as unsupported.
+- `core/usage/key_windows.go` — Windows: unwraps the profile's `Local State` key with DPAPI.
+- `core/usage/key_other.go` — Other platforms: reports usage as unsupported.
+- `core/usage/store.go` — Shared cache and background refresher (at most once a minute, last good reading kept and persisted to `usage.json`, failures turned into one panel sentence).
+- `core/usage/usage_test.go` — Unit tests: PBKDF2 vectors, both ciphers, stored-value encodings, token extraction and ordering, the HTTP client against a local server, reset handling, and the store's caching and persistence.
 - `core/update_test.go` — Unit tests for version comparison and release JSON parsing.
 - `cmd/mcs-tray/update.go` — Update check plumbing shared by all OSes: find the platform's release asset, single-flight the check, periodic + manual triggers; delegates the actual install to the per-OS `installUpdate`. Neither path asks before installing; a manual check answers "up to date" and failures with a dialog; the first start on a newer version toasts that the update landed (`last-version` beside the logs). Counts consecutive unreachable-GitHub failures so a background check that keeps failing surfaces once instead of leaving the app silently stale.
 - `cmd/mcs-tray/update_test.go` — Unit tests for .app-bundle path detection, release-asset matching, and when the "updated" notice fires.
@@ -94,6 +103,8 @@
 - `cmd/mcs-menubar/menubar.h` — C header for the menubar Objective-C entry points (RunMenuBar, LoadPanelHTML, ClosePopover, TerminateApp).
 - `cmd/mcs-menubar/update.go` — Background self-update for the menu-bar app: periodic + manual check, download, atomic binary swap, relaunch.
 - `cmd/mcs-menubar/stub_other.go` — Non-macOS no-op `main` so the package builds on all platforms (the panel is macOS-only).
+- `internal/panelui/usage.go` — Turns cached usage readings into the account card's 5-hour and weekly bars (colour by level, reset time, "As of" note for old readings) and lists which profiles a refresh should read.
+- `internal/panelui/usage_test.go` — Unit tests for the usage view model, targets and the bars drawn on both kinds of account card.
 - `internal/panelui/render.go` — Shared renderer for the account panel's HTML/CSS/JS, including the slimmed Settings screen (two toggles, a More submenu, Quit, and a footer line carrying the version, the update check and the bug report) and the More screen that holds everything acting on conversation data. Both macOS (`cmd/mcs-menubar`, WKWebView) and Windows (`cmd/mcs-tray --panel`, WebView2) load the exact same output, feature-detecting the JS bridge (`window.webkit.messageHandlers` vs `window.mcsAction`). Every screen carries the same × close button in the top-right corner, added once in `shell()` and sending the same `hidePanel` action as Esc. Views include the account list (with the duplicate-account warning), Rescan, Settings, Rename, the name-the-profile screen (`RenderNewProfile`, shared by the add and recover paths), the merge screen (`RenderMerge`), and Sync.
 - `internal/panelui/state.go` — `PanelState`: which screen is up, whether a row's rename editor is open, and whether a progress card is over the top, plus the rules for how the three interact (navigation clears the card, returning to the list via the non-navigation paths does not, the sticky notification is delivered under the lock). `Snapshot` reads all three together, so a host renders a screen and the card over it from one instant. Held by both hosts so they cannot drift.
 - `internal/panelui/state_test.go` — Tests for `PanelState`, including a deterministic check that the sticky notification is delivered while the lock is still held, which is what stops one goroutine's notification overtaking another's.

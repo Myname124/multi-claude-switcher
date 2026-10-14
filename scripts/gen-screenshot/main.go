@@ -11,11 +11,12 @@
 //
 //	msedge --headless --disable-gpu --hide-scrollbars \
 //	  --force-device-scale-factor=2 --screenshot=docs/assets/panel.png \
-//	  --window-size=400,347 file:///absolute/path/to/panel.html
+//	  --window-size=400,545 file:///absolute/path/to/panel.html
 //
 // The window height is the content height, not the panel's real 540px: the
 // live panel leaves empty space below the buttons, which only wastes room in a
-// README. Add ~72px per extra account if you change the list below.
+// README. Add ~72px per extra account (more with usage bars) if you change the
+// list below.
 package main
 
 import (
@@ -29,9 +30,21 @@ import (
 // with (a work account alongside a personal one) plus a third to make the
 // plan pills visibly different.
 var accounts = []panelui.ProfileVM{
-	{Folder: "Claude", Name: "Work", Plan: "Team", Current: true, SignedIn: true},
-	{Folder: "Claude_Personal", Name: "Personal", Plan: "Max 20×", SignedIn: true},
-	{Folder: "Claude_Side", Name: "Side project", Plan: "Pro", SignedIn: true},
+	{Folder: "Claude", Name: "Work", Plan: "Team", Current: true, SignedIn: true,
+		Usage: &panelui.UsageVM{
+			FiveHour: &panelui.UsageBarVM{Percent: 72, Resets: "resets 15:40"},
+			Week:     &panelui.UsageBarVM{Percent: 38, Resets: "resets Mon 09:00"},
+		}},
+	{Folder: "Claude_Personal", Name: "Personal", Plan: "Max 20×", SignedIn: true,
+		Usage: &panelui.UsageVM{
+			FiveHour: &panelui.UsageBarVM{Percent: 0},
+			Week:     &panelui.UsageBarVM{Percent: 93, Resets: "resets Thu 18:00"},
+		}},
+	{Folder: "Claude_Side", Name: "Side project", Plan: "Pro", SignedIn: true,
+		Usage: &panelui.UsageVM{
+			FiveHour: &panelui.UsageBarVM{Percent: 12, Resets: "resets 13:10"},
+			Week:     &panelui.UsageBarVM{Percent: 21, Resets: "resets Sat 07:30"},
+		}},
 }
 
 func main() {

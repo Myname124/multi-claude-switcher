@@ -31,6 +31,7 @@ import (
 	webview2 "github.com/jchv/go-webview2"
 	"github.com/miou1107/multi-claude-switcher/core"
 	"github.com/miou1107/multi-claude-switcher/core/diagnostics"
+	"github.com/miou1107/multi-claude-switcher/core/usage"
 	"github.com/miou1107/multi-claude-switcher/internal/clip"
 	"github.com/miou1107/multi-claude-switcher/internal/panelui"
 	"github.com/miou1107/multi-claude-switcher/platform"
@@ -314,6 +315,9 @@ func showPanelAt(hwnd uintptr, anchor point) {
 			_ = core.RemovePending(f)
 		}
 		reloadPanel()
+		// Usage arrives after the list: it is a network round trip per account,
+		// so the list is drawn first and redrawn when the readings land.
+		usage.Default.Refresh(panelui.UsageTargets(panelBuildProfiles(), profiles), reloadPanel)
 	}()
 }
 
@@ -1096,7 +1100,8 @@ func panelMustFindProfiles() []*platform.ProfileInfo {
 func panelBuildProfiles() []panelui.ProfileVM {
 	running, _ := panelPlat.DetectRunningProfile()
 	// Shared with the macOS host on purpose: see panelui.BuildProfiles.
-	return panelui.BuildProfiles(panelMustFindProfiles(), core.LoadManaged(), panelPendingFolders(), running, panelCachedPlan)
+	vms := panelui.BuildProfiles(panelMustFindProfiles(), core.LoadManaged(), panelPendingFolders(), running, panelCachedPlan)
+	return panelui.AttachUsage(vms, usage.Default.Lookup, time.Now())
 }
 
 // panelRemovalRow looks up the display name and conversation count for a

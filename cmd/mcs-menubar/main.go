@@ -32,6 +32,7 @@ import (
 
 	"github.com/miou1107/multi-claude-switcher/core"
 	"github.com/miou1107/multi-claude-switcher/core/diagnostics"
+	"github.com/miou1107/multi-claude-switcher/core/usage"
 	"github.com/miou1107/multi-claude-switcher/internal/clip"
 	"github.com/miou1107/multi-claude-switcher/internal/panelui"
 	"github.com/miou1107/multi-claude-switcher/platform"
@@ -251,6 +252,9 @@ func goPanelWillOpen() {
 			_ = core.RemovePending(f)
 		}
 		reloadPanel()
+		// Usage arrives after the list: it is a network round trip per account,
+		// so the list is drawn first and redrawn when the readings land.
+		usage.Default.Refresh(panelui.UsageTargets(buildProfiles(), profiles), reloadPanel)
 	}()
 }
 
@@ -970,7 +974,8 @@ func buildProfiles() []panelui.ProfileVM {
 	// Shared with the Windows host on purpose: this used to be a copy in each, and
 	// the copies drifted — SignedIn was set in one and not the other, which left the
 	// sync screen unable to offer any pair at all on macOS.
-	return panelui.BuildProfiles(mustFindProfiles(), core.LoadManaged(), pendingFolders(), running, cachedPlan)
+	vms := panelui.BuildProfiles(mustFindProfiles(), core.LoadManaged(), pendingFolders(), running, cachedPlan)
+	return panelui.AttachUsage(vms, usage.Default.Lookup, time.Now())
 }
 
 // removalRow looks up the display name and conversation count for a folder
