@@ -19,36 +19,6 @@ import (
 	"time"
 )
 
-func TestPBKDF2MatchesRFC6070(t *testing.T) {
-	for _, tc := range []struct {
-		iter int
-		want string
-	}{
-		{1, "0c60c80f961f0e71f3a9b524af6012062fe037a6"},
-		{2, "ea6c014dc72d6f8ccd1ed92ace1d41f0d8de8957"},
-		{4096, "4b007901b765489abead49d926f721d065a429c1"},
-	} {
-		got := hex.EncodeToString(pbkdf2SHA1([]byte("password"), []byte("salt"), tc.iter, 20))
-		if got != tc.want {
-			t.Errorf("iter %d: got %s want %s", tc.iter, got, tc.want)
-		}
-	}
-}
-
-// encryptCBC is the macOS scheme run forwards, for fixtures.
-func encryptCBC(t *testing.T, key, plain []byte) []byte {
-	t.Helper()
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		t.Fatal(err)
-	}
-	n := aes.BlockSize - len(plain)%aes.BlockSize
-	padded := append(append([]byte(nil), plain...), bytes.Repeat([]byte{byte(n)}, n)...)
-	out := make([]byte, len(padded))
-	cipher.NewCBCEncrypter(block, bytes.Repeat([]byte{' '}, aes.BlockSize)).CryptBlocks(out, padded)
-	return append([]byte("v10"), out...)
-}
-
 // encryptGCM is the Windows scheme run forwards, for fixtures.
 func encryptGCM(t *testing.T, key, plain []byte) []byte {
 	t.Helper()
@@ -56,18 +26,6 @@ func encryptGCM(t *testing.T, key, plain []byte) []byte {
 	gcm, _ := cipher.NewGCM(block)
 	nonce := []byte("0123456789ab")
 	return append(append([]byte("v10"), nonce...), gcm.Seal(nil, nonce, plain, nil)...)
-}
-
-func TestCBCRoundTripAndWrongKey(t *testing.T) {
-	key := macKey([]byte("keychain-password"))
-	blob := encryptCBC(t, key, []byte(`{"hello":"world"}`))
-	got, err := decryptCBC(key, blob)
-	if err != nil || string(got) != `{"hello":"world"}` {
-		t.Fatalf("got %q, %v", got, err)
-	}
-	if _, err := decryptCBC(macKey([]byte("other")), blob); err == nil {
-		t.Fatal("a wrong key decrypted without error")
-	}
 }
 
 func TestGCMRoundTripAndTamper(t *testing.T) {

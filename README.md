@@ -2,7 +2,7 @@
 
 <img src="docs/assets/icon.png" width="88" alt="Multi-Claude Switcher icon" align="right" />
 
-Run several Claude Desktop accounts on one machine. No signing out, no retyping
+Run several Claude Desktop accounts on one Windows PC. No signing out, no retyping
 passwords, and every account keeps its own Code history.
 
 [![Download](https://img.shields.io/github/v/release/miou1107/multi-claude-switcher?label=download&style=flat-square)](https://github.com/miou1107/multi-claude-switcher/releases/latest)
@@ -45,29 +45,6 @@ left. Enough friction that most people stop bothering.
 > virtualized that cannot be swapped out, which is the mechanism this whole tool
 > depends on.
 
-**macOS**
-
-```bash
-brew install --cask miou1107/tap/multi-claude-switcher
-```
-
-Or download `Multi-Claude-Switcher_<version>_macos.zip` from the
-[latest release](https://github.com/miou1107/multi-claude-switcher/releases/latest),
-unzip, and drag **Multi-Claude Switcher.app** into **Applications**.
-
-*First launch only.* The app is ad-hoc signed but not notarized, since
-notarizing needs a paid Apple Developer account. macOS will ask you to confirm
-once. Either right-click the app and choose **Open**, then **Open** again in the
-dialog. Or, if that dialog has no **Open** button (macOS 15 Sequoia and later),
-go to **System Settings → Privacy & Security**, scroll down, and click **Open
-Anyway**. After that it opens normally. Terminal alternative:
-
-```bash
-xattr -dr com.apple.quarantine "/Applications/Multi-Claude Switcher.app"
-```
-
-**Windows**
-
 Download `Multi-Claude-Switcher_<version>_windows_setup.exe` from the
 [latest release](https://github.com/miou1107/multi-claude-switcher/releases/latest)
 and run it. It installs for your user only, so there is no administrator prompt.
@@ -82,8 +59,7 @@ Microsoft's installer.
 is not supported: it keeps its data somewhere virtualized that cannot be swapped
 out, which is the mechanism the whole tool depends on.
 
-Updates install themselves in the background, on both platforms. You install
-once. Nothing asks first; once a new version is running, one notification says
+Updates install themselves in the background. You install once. Nothing asks first; once a new version is running, one notification says
 so. "Check for updates" at the bottom of the panel always answers: it says you
 are up to date, or installs the new version right away.
 
@@ -102,8 +78,8 @@ are up to date, or installs the new version right away.
 > | Add another account | 添加另一个账号 | Recover | 恢复 |
 > | Quit | 退出 | 5h / Week | 5小时 / 本周 |
 
-There is no window and no Dock icon. The app is a pair-of-eyes icon in the macOS
-menu bar or the Windows system tray. Click it and the panel appears. The × in
+There is no window. The app is a pair-of-eyes icon in the Windows system
+tray. Click it and the panel appears. The × in
 the top-right corner of every screen closes it, as does Esc.
 
 The panel lists your accounts with their plan and marks the one you are on.
@@ -167,11 +143,8 @@ Claude once to refresh its usage); until
 then it keeps showing its last reading, and a window whose reset time has
 passed shows as 0%.
 
-- **macOS** asks once whether Multi-Claude Switcher may use "Claude Safe
-  Storage" from your Keychain. That is where Claude keeps the key to its saved
-  sign-ins. Choose **Always Allow**. After an update macOS may ask again,
-  because the app is not notarized.
-- **Windows** needs no prompt: the key is protected by your Windows account.
+There is no prompt: the key that unlocks the token is protected by your
+Windows account.
 
 Readings, which are only percentages and times, are cached in
 `~/.multi-claude-switcher/usage.json`. To check from a terminal, run
@@ -281,10 +254,8 @@ bug report, which is usually enough.
 
 **How do I remove it completely?**
 
-- **macOS**: delete the app, then `~/.multi-claude-switcher/` and
-  `~/Library/LaunchAgents/com.miou1107.multi-claude-switcher.plist`.
-- **Windows**: uninstall from Add/Remove Programs, then delete
-  `%USERPROFILE%\.multi-claude-switcher`.
+Uninstall from Add/Remove Programs, then delete
+`%USERPROFILE%\.multi-claude-switcher`.
 
 Removing the tool leaves your Claude Desktop accounts and their data untouched.
 

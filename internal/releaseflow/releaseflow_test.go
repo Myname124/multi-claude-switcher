@@ -74,9 +74,9 @@ func TestEveryUploadNamesTheTag(t *testing.T) {
 			t.Errorf("an upload does not name the tag it is uploading to: %s", strings.TrimSpace(line))
 		}
 	}
-	// The two platform builds. Zero would mean this test is reading a workflow
-	// that no longer uploads anything the way it thinks.
-	if uploads != 2 {
-		t.Errorf("found %d upload steps, want 2 (macOS and Windows)", uploads)
+	// The Windows build. Zero would mean this test is reading a workflow that
+	// no longer uploads anything the way it thinks.
+	if uploads != 1 {
+		t.Errorf("found %d upload steps, want 1 (the Windows installer)", uploads)
 	}
 }

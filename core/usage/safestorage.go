@@ -4,10 +4,7 @@ import (
 	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
-	"crypto/hmac"
-	"crypto/sha1"
 	"encoding/base64"
-	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -17,49 +14,9 @@ import (
 
 // Electron's safeStorage is Chromium's OSCrypt, so a value Claude Desktop
 // encrypted with it has the shape Chromium gives its own secrets: a three-byte
-// version prefix, then the ciphertext. What follows "v10" depends on the OS:
-//
-//   - macOS: AES-128-CBC, the key derived with PBKDF2-HMAC-SHA1 from the
-//     password Claude keeps in the Keychain as "Claude Safe Storage", salt
-//     "saltysalt", 1003 iterations, IV of sixteen spaces.
-//   - Windows: AES-256-GCM, a 12-byte nonce after the prefix and the tag at the
-//     end, the key stored DPAPI-wrapped in the profile's "Local State".
+// "v10" prefix, then AES-256-GCM with a 12-byte nonce after the prefix and the
+// tag at the end, keyed by the DPAPI-wrapped key in the profile's "Local State".
 var v10 = []byte("v10")
-
-// macKey derives the AES key from the Keychain password.
-func macKey(password []byte) []byte {
-	return pbkdf2SHA1(password, []byte("saltysalt"), 1003, 16)
-}
-
-// decryptCBC undoes the macOS scheme.
-func decryptCBC(key, data []byte) ([]byte, error) {
-	if !bytes.HasPrefix(data, v10) {
-		return nil, errors.New("not a v10 value")
-	}
-	ct := data[len(v10):]
-	if len(ct) == 0 || len(ct)%aes.BlockSize != 0 {
-		return nil, errors.New("ciphertext is not a whole number of blocks")
-	}
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		return nil, err
-	}
-	iv := bytes.Repeat([]byte{' '}, aes.BlockSize)
-	out := make([]byte, len(ct))
-	cipher.NewCBCDecrypter(block, iv).CryptBlocks(out, ct)
-	// PKCS#7. A wrong key almost always fails here, which is the only signal
-	// CBC gives that the key was wrong.
-	n := int(out[len(out)-1])
-	if n == 0 || n > aes.BlockSize || n > len(out) {
-		return nil, errors.New("bad padding (wrong key?)")
-	}
-	for _, b := range out[len(out)-n:] {
-		if int(b) != n {
-			return nil, errors.New("bad padding (wrong key?)")
-		}
-	}
-	return out[:len(out)-n], nil
-}
 
 // decryptGCM undoes the Windows scheme.
 func decryptGCM(key, data []byte) ([]byte, error) {
@@ -80,36 +37,6 @@ func decryptGCM(key, data []byte) ([]byte, error) {
 		return nil, err
 	}
 	return gcm.Open(nil, rest[:nonceSize], rest[nonceSize:], nil)
-}
-
-// pbkdf2SHA1 is RFC 8018 PBKDF2 with HMAC-SHA1. It is written out rather than
-// imported because go.mod targets Go 1.22, before crypto/pbkdf2 joined the
-// standard library, and pulling in golang.org/x/crypto for twenty lines is not
-// worth the dependency.
-func pbkdf2SHA1(password, salt []byte, iter, keyLen int) []byte {
-	prf := hmac.New(sha1.New, password)
-	hashLen := prf.Size()
-	blocks := (keyLen + hashLen - 1) / hashLen
-	out := make([]byte, 0, blocks*hashLen)
-	var buf [4]byte
-	for i := 1; i <= blocks; i++ {
-		prf.Reset()
-		prf.Write(salt)
-		binary.BigEndian.PutUint32(buf[:], uint32(i))
-		prf.Write(buf[:])
-		u := prf.Sum(nil)
-		t := append([]byte(nil), u...)
-		for n := 1; n < iter; n++ {
-			prf.Reset()
-			prf.Write(u)
-			u = prf.Sum(u[:0])
-			for j := range t {
-				t[j] ^= u[j]
-			}
-		}
-		out = append(out, t...)
-	}
-	return out[:keyLen]
 }
 
 // storedBlobs turns one config.json value into the encrypted byte strings it

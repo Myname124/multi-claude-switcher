@@ -3,7 +3,6 @@ package core
 import (
 	"os"
 	"path/filepath"
-	"runtime"
 	"testing"
 	"time"
 
@@ -140,37 +139,6 @@ func TestMergePreviewIdenticalCopiesAreNotConflicts(t *testing.T) {
 	}
 	if plan.Combined != 3 {
 		t.Fatalf("Combined = %d, want 3", plan.Combined)
-	}
-}
-
-// TestMergePreviewSurvivesAnUnreadableRecord: SyncSessions skips a file it cannot
-// read and carries on, so a preview that aborted would block a merge of hundreds
-// of conversations over one junk file.
-func TestMergePreviewSurvivesAnUnreadableRecord(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("permission bits do not deny reads the same way on Windows")
-	}
-	keep, archive, _ := mergeFixture(t, "same-uuid", "same-uuid")
-	// A record present on both sides, where the archive side cannot be read.
-	kp := filepath.Join(keep, "claude-code-sessions", "same-uuid", "both.json")
-	if err := os.WriteFile(kp, []byte(`{"v":2}`), 0o600); err != nil {
-		t.Fatal(err)
-	}
-	ap := filepath.Join(archive, "claude-code-sessions", "same-uuid", "both.json")
-	if err := os.WriteFile(ap, []byte(`{"v":1}`), 0o000); err != nil {
-		t.Fatal(err)
-	}
-	t.Cleanup(func() { _ = os.Chmod(ap, 0o600) }) // so t.TempDir can clean up
-
-	plan, err := MergePreview(keep, archive, "same-uuid")
-	if err != nil {
-		t.Fatalf("one unreadable record must not fail the preview: %v", err)
-	}
-	if plan.Unreadable != 1 {
-		t.Fatalf("Unreadable = %d, want 1", plan.Unreadable)
-	}
-	if plan.Conflicts != 0 {
-		t.Fatalf("an unreadable record is not a conflict, got %d", plan.Conflicts)
 	}
 }
 
@@ -350,40 +318,6 @@ func TestMergeDuplicatesRefusesToMergeAProfileIntoItself(t *testing.T) {
 	}
 	if len(LoadManaged()) != 1 {
 		t.Fatalf("managed = %v, want it untouched", LoadManaged())
-	}
-}
-
-// TestMergePreviewSurvivesAnUnreadableSubdirectory: the walk delivers a failure for
-// entries it cannot read. Returning it aborts the whole walk and fails the preview,
-// which blocks the merge — over one bad directory, while the sync this preview must
-// predict skips it and carries on.
-func TestMergePreviewSurvivesAnUnreadableSubdirectory(t *testing.T) {
-	if runtime.GOOS == "windows" || os.Geteuid() == 0 {
-		t.Skip("needs POSIX permissions and a non-root user to deny the walk")
-	}
-	keep, archive, _ := mergeFixture(t, "same-uuid", "same-uuid")
-	locked := filepath.Join(archive, "claude-code-sessions", "same-uuid", "locked")
-	if err := os.MkdirAll(locked, 0o755); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(filepath.Join(locked, "deep.json"), []byte(`{}`), 0o600); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.Chmod(locked, 0o000); err != nil {
-		t.Fatal(err)
-	}
-	t.Cleanup(func() { _ = os.Chmod(locked, 0o755) })
-
-	plan, err := MergePreview(keep, archive, "same-uuid")
-	if err != nil {
-		t.Fatalf("an unreadable subdirectory must not fail the preview: %v", err)
-	}
-	if plan.Unreadable == 0 {
-		t.Fatal("what could not be read must be counted, not silently dropped")
-	}
-	// The readable records on both sides are still accounted for.
-	if plan.Combined < 2 {
-		t.Fatalf("Combined = %d, want the readable records still counted", plan.Combined)
 	}
 }
 

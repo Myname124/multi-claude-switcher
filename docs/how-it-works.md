@@ -7,10 +7,7 @@ Background for the curious. None of this is needed to use the app.
 Claude Desktop keeps everything for one signed-in account in a single data
 directory, and accepts a `--user-data-dir` flag choosing which one to use:
 
-| | Path |
-|---|---|
-| macOS | `~/Library/Application Support/Claude*` |
-| Windows | `%APPDATA%\Claude*` |
+`%APPDATA%\Claude*` on Windows.
 
 A "profile" is one of those directories. Switching accounts means closing Claude
 Desktop and reopening it against a different one — which is why each account

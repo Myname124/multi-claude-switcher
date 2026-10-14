@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 )
 
@@ -22,10 +21,7 @@ func SamePath(a, b string) bool {
 		return a == b
 	}
 	a, b = filepath.Clean(a), filepath.Clean(b)
-	if runtime.GOOS == "windows" {
-		return strings.EqualFold(a, b)
-	}
-	return a == b
+	return strings.EqualFold(a, b)
 }
 
 // ProfileInfo holds basic information about a detected Claude Desktop profile.

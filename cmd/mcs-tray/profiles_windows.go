@@ -33,9 +33,6 @@ var migrationWatcherRunning atomic.Bool
 // cannot be carried out on a standalone install while this reads MSIXAvailable.
 func newProfileSupported() bool { return true }
 
-// newProfileMenuLabel is the menu text for the create-profile action (Store build).
-func newProfileMenuLabel() string { return "新建账号…" }
-
 // runNewProfileFlow saves the current account as a profile and opens a fresh,
 // signed-out Claude so the user can add a second account, then relaunches the
 // tray so the new profile appears in the menu. After the user signs in, a

@@ -2,7 +2,7 @@
 
 <img src="docs/assets/icon.png" width="88" alt="Multi-Claude Switcher 图标" align="right" />
 
-在同一台电脑上切换多个 Claude Desktop 账号。免退出登录、免重打密码，每个账号的 Claude Code 对话记录各自保留。
+在同一台 Windows 电脑上切换多个 Claude Desktop 账号。免退出登录、免重打密码，每个账号的 Claude Code 对话记录各自保留。
 
 [![下载](https://img.shields.io/github/v/release/miou1107/multi-claude-switcher?label=download&style=flat-square)](https://github.com/miou1107/multi-claude-switcher/releases/latest)
 [![许可证 MIT](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE)
@@ -33,31 +33,10 @@
 
 ## 安装
 
-> ⚠️ **Windows用户重要提醒**
+> ⚠️ **重要提醒**
 > 你必须使用**独立安装版**的 [Claude Desktop](https://claude.com/download)。
 > **Microsoft Store 版不支持**：如果你是从 Microsoft Store 安装 Claude Code，可能会因其沙盒限制而无法正常使用。
 >  建议你从 Claude 下载官方 .exe 独立安装版。
-
-**macOS**
-> macOS用户推荐使用 brew 命令安装，快速又方便!
-```bash
-brew install --cask miou1107/tap/multi-claude-switcher
-```
-
-或是到[最新版本](https://github.com/miou1107/multi-claude-switcher/releases/latest)
-下载 `Multi-Claude-Switcher_<版本>_macos.zip`，解压缩后把
-**Multi-Claude Switcher.app** 拖进**应用程序**。
-
-*只有第一次要做。* 目前 app 没有Apple Developer 公证签章，所以安装时可能会被挡。
-请打开macOS的**系统设置 → 隐私与安全性**往下滚动，点**仍要打开**就能完成安装并正常使用。
-
-或者可以直接用终端命令解除限制，就能正常安装使用：
-
-```bash
-xattr -dr com.apple.quarantine "/Applications/Multi-Claude Switcher.app"
-```
-
-**Windows**
 
 到[最新版本](https://github.com/miou1107/multi-claude-switcher/releases/latest)
 下载 `Multi-Claude-Switcher_<版本>_windows_setup.exe` 运行。它只装给你这个用户，
@@ -70,7 +49,7 @@ xattr -dr com.apple.quarantine "/Applications/Multi-Claude Switcher.app"
 
 ## 怎么用
 
-安装完成后，请在 macOS 菜单栏或 Windows 系统托盘上找到眼睛图标，
+安装完成后，请在 Windows 系统托盘上找到眼睛图标，
 点击后功能面板就会弹出来。每个画面的右上角都有一个 ×，按下去就能关掉面板，按 Esc 也可以。
 
 面板上会显示你的账号列表，并标出你现在在用哪个。可随时切换到不同账号，切换后 Claude Desktop
@@ -113,9 +92,7 @@ xattr -dr com.apple.quarantine "/Applications/Multi-Claude Switcher.app"
 只发给签发它的 `api.anthropic.com`。它从不续期这个 token，因为续期会让 Claude Desktop 掉登录。
 所以一个很久没打开的账号可能会显示「在 Claude 里打开一次这个账号即可刷新额度。」；在那之前它会继续显示上一次的读数，已经过了重置时间的额度显示为 0%。
 
-- **macOS** 第一次会询问是否允许 Multi-Claude Switcher 使用钥匙串里的「Claude Safe Storage」，
-  Claude 用它保管登录信息的密钥。请选**始终允许**。因为 app 没有经过 Apple 公证，更新后可能会再问一次。
-- **Windows** 不会弹出提示：密钥受你的 Windows 账户保护。
+不会弹出任何提示：解开 token 的密钥受你的 Windows 账户保护。
 
 读数只有百分比和时间，缓存在 `~/.multi-claude-switcher/usage.json`。想在终端里查看，可以运行 `mcs usage`。
 
@@ -201,9 +178,7 @@ Windows 默认会把这个链接交给你的默认账号，除非切换器先把
 
 **Q：如何彻底移除？**
 
-- **macOS**：删掉 app，再清掉 `~/.multi-claude-switcher/` 和
-  `~/Library/LaunchAgents/com.miou1107.multi-claude-switcher.plist`。
-- **Windows**：从「设置 → 应用」卸载，再删掉 `%USERPROFILE%\.multi-claude-switcher`。
+从「设置 → 应用」卸载，再删掉 `%USERPROFILE%\.multi-claude-switcher`。
 
 移除本工具完全不会影响你原本的 Claude Desktop 账号与数据。
 

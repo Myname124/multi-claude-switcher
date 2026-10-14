@@ -6,7 +6,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 
 	"github.com/miou1107/multi-claude-switcher/platform"
@@ -263,17 +262,10 @@ func MergeDuplicates(plat platform.Platform, req MergeRequest) (*SyncReport, err
 // samePath reports whether two paths name the same directory.
 //
 // Compared as cleaned strings rather than with os.SameFile because callers need
-// an answer about a path that may not exist yet, and case-insensitively on the
-// platforms whose filesystems are: on Windows and on a default macOS volume,
-// "Claude" and "claude" are one directory. A volume that really is
-// case-sensitive makes this too cautious rather than not cautious enough, which
-// is the right way round for a guard that only ever refuses.
+// an answer about a path that may not exist yet, and case-insensitively because
+// on Windows "Claude" and "claude" are one directory.
 func samePath(a, b string) bool {
-	a, b = filepath.Clean(a), filepath.Clean(b)
-	if runtime.GOOS == "windows" || runtime.GOOS == "darwin" {
-		return strings.EqualFold(a, b)
-	}
-	return a == b
+	return strings.EqualFold(filepath.Clean(a), filepath.Clean(b))
 }
 
 // profilePathsByIdentity maps every discovered profile's identity to its path.

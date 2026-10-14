@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"log"
 	"os"
 	"path/filepath"
@@ -12,19 +11,6 @@ import (
 
 	"github.com/miou1107/multi-claude-switcher/core"
 )
-
-// isInsideAppBundle reports whether exePath is the executable of a macOS .app
-// bundle, returning the path to the bundle (the "…/Foo.app" directory). Used to
-// decide whether to relaunch via LaunchServices (`open`) instead of exec'ing the
-// bare binary.
-func isInsideAppBundle(exePath string) (string, bool) {
-	const marker = ".app/Contents/MacOS/"
-	i := strings.Index(exePath, marker)
-	if i < 0 {
-		return "", false
-	}
-	return exePath[:i+len(".app")], true
-}
 
 // appZipPrefix / appZipSuffix bracket the release asset the updater keys on (e.g.
 // "Multi-Claude-Switcher_0.6.1_macos.zip" on macOS, the setup.exe on Windows).
@@ -193,30 +179,4 @@ func announceUpdateIfNew() {
 	}
 	log.Printf("Started on v%s after updating from v%s", core.Version, previous)
 	notify("Multi-Claude Switcher 已更新", fmt.Sprintf("现在是 v%s（原来是 v%s）。", core.Version, previous))
-}
-
-// copyExecutable copies src to dst (0755), truncating dst. Used by the macOS
-// self-updater to move the extracted binary onto the app's filesystem before the
-// atomic swap.
-func copyExecutable(src, dst string) error {
-	in, err := os.Open(src)
-	if err != nil {
-		return err
-	}
-	defer in.Close()
-	out, err := os.OpenFile(dst, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0755)
-	if err != nil {
-		return err
-	}
-	if _, err := io.Copy(out, in); err != nil {
-		out.Close()
-		return err
-	}
-	if err := out.Close(); err != nil {
-		return err
-	}
-	// Force the exec bit unconditionally: O_CREATE|0755 is umask-masked and won't
-	// reset the mode of a pre-existing stale dst, so a plain OpenFile is not a
-	// guarantee the swapped-in binary is runnable.
-	return os.Chmod(dst, 0755)
 }

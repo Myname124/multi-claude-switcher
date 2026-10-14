@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+### Removed
+- **macOS and Linux.** The project is Windows-only. Gone: the macOS menu-bar
+  app (`cmd/mcs-menubar`) and its `.app` packaging, the account picker helper
+  (`cmd/mcs-picker`), the old static tray menu that only macOS and Linux used,
+  the macOS and Linux platform layers, Keychain decryption for usage, the
+  macOS-only icons and probe script, and the macOS and Linux CI legs and
+  release job. `go.mod` no longer needs `webview_go`. Tests that could only
+  ever run on macOS or Linux went with them.
+
 ### Added
 - **Each account shows its 5-hour and weekly usage.** Two bars under every
   signed-in account, with the time each limit resets, amber from 70% and red

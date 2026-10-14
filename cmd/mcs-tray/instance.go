@@ -1,9 +1,6 @@
 package main
 
-import (
-	"strconv"
-	"strings"
-)
+import ()
 
 // relaunchSkipInstanceCheckFlag is passed by the self-updater when it relaunches
 // the app, so the fresh instance does not refuse to start while the old one is
@@ -14,30 +11,6 @@ const relaunchSkipInstanceCheckFlag = "--mcs-relaunch"
 func hasSkipInstanceFlag(args []string) bool {
 	for _, a := range args {
 		if a == relaunchSkipInstanceCheckFlag {
-			return true
-		}
-	}
-	return false
-}
-
-// otherTrayRunning parses `ps -axo pid=,command=` output and reports whether any
-// process OTHER than selfPID is an mcs-tray. Pure so it is unit-testable. Used by
-// the Unix (macOS) instance check.
-func otherTrayRunning(psOutput string, selfPID int) bool {
-	for _, line := range strings.Split(psOutput, "\n") {
-		line = strings.TrimSpace(line)
-		if line == "" {
-			continue
-		}
-		fields := strings.SplitN(line, " ", 2)
-		if len(fields) < 2 {
-			continue
-		}
-		pid, err := strconv.Atoi(fields[0])
-		if err != nil || pid == selfPID {
-			continue
-		}
-		if strings.Contains(fields[1], "mcs-tray") {
 			return true
 		}
 	}

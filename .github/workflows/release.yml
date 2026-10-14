@@ -2,11 +2,8 @@ name: Release
 
 # Cut a release by pushing a version tag, e.g.:
 #   git tag v0.6.1 && git push origin v0.6.1
-# macOS: builds a universal (arm64 + Intel) tray binary with the version baked in,
-# packages it into Multi-Claude Switcher.app, and attaches that _macos.zip (the
-# sole macOS download and the macOS self-updater's source).
-# Windows: builds mcs-tray.exe (pure Go, no CGO) and attaches a single
-# _windows_setup.exe installer. Upgrades run the newer installer, which replaces
+# Builds mcs-tray.exe (pure Go, no CGO) with the version baked in and attaches a
+# single _windows_setup.exe installer. Upgrades run the newer installer, which replaces
 # the running exe in place, so there is no separate self-update zip.
 
 on:
@@ -18,44 +15,21 @@ permissions:
   contents: write
 
 jobs:
-  # The suite gates the release. Everything behind //go:build windows had never
-  # been executed anywhere: go test ./... was only ever run by hand, on a Mac, so
-  # the Windows-only files were verified by cross-compilation and by reading them.
-  # A tag can no longer publish a build whose tests fail.
+  # The suite gates the release: a tag cannot publish a build whose tests fail.
   #
   # An identical copy of this job runs on every push and pull request, in
-  # .github/workflows/ci.yml. Change both, or they drift: a Go bump, an extra
-  # matrix leg or a new step added only here means the continuous run stops
+  # .github/workflows/ci.yml. Change both, or they drift: a Go bump or a new
+  # step added only here means the continuous run stops
   # matching the gate, and the gate is the one nobody exercises until a tag.
   #
-  # go-version is 1.24, not the 1.22 in go.mod, and it is the same in all three
-  # jobs here on purpose. go.mod's version is a minimum, not a toolchain pin.
-  # Two reasons it had to move:
-  #   - A cgo test binary linked by Go 1.22 on today's macos-latest image is
-  #     rejected by dyld with "missing LC_UUID load command" and aborts before
-  #     main. It only shows up when something RUNS the binary, so the build jobs
-  #     never saw it and every release before this one was built at 1.22 fine.
-  #   - Everything verified by hand during development is built with whatever Go
-  #     the developer has, which is well ahead of 1.22. Testing on one toolchain
-  #     and shipping another means the gate is not checking the artifact.
+  # go-version is 1.24, not the 1.22 in go.mod, and the same in every job here
+  # on purpose: go.mod's version is a minimum, not a toolchain pin, and testing
+  # on one toolchain while shipping another means the gate is not checking the
+  # artifact.
   test:
-    strategy:
-      # Independent legs: a Windows failure should not hide a macOS one.
-      fail-fast: false
-      matrix:
-        include:
-          # CGO matches how each platform actually ships. The Windows tray is
-          # built with cgo off (systray is pure Go there); the macOS menu bar
-          # needs it for Cocoa. Linux ships nothing — it is here to catch
-          # platform-independent regressions, and cgo off keeps it from pulling
-          # in the GTK and WebKit headers systray and webview would want.
-          - os: windows-latest
-            cgo: '0'
-          - os: macos-latest
-            cgo: '1'
-          - os: ubuntu-latest
-            cgo: '0'
-    runs-on: ${{ matrix.os }}
+    # Windows is the only platform this project ships for. CGO stays off, the
+    # way the tray is built: systray and WebView2 are pure Go on Windows.
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
 
@@ -65,30 +39,25 @@ jobs:
 
       - name: go vet
         env:
-          CGO_ENABLED: ${{ matrix.cgo }}
+          CGO_ENABLED: '0'
         run: go vet ./...
 
       - name: go test
         env:
-          CGO_ENABLED: ${{ matrix.cgo }}
+          CGO_ENABLED: '0'
         # -count=1 so a cached result from an earlier run cannot stand in for
         # this one. There is no gofmt check here on purpose: the repository
         # checks out with CRLF on Windows, which makes gofmt -l flag every file.
         run: go test ./... -count=1
 
-  # One job creates the release; the two build jobs only upload into it.
+  # One job creates the release; the build job only uploads into it.
   #
-  # Both build jobs used to publish with an action that creates the release when
-  # it is missing. They run at the same time, so on v0.13.3 both created one: the
-  # Windows job's won, the macOS job's was left an unpublished draft holding the
-  # only copy of the mac download, and its finalize failed with "already_exists".
-  # The published release had the installer and no mac zip, and update-homebrew-tap
-  # never ran because the job it needs had failed. Four earlier tags raced the
-  # same way and happened to win.
-  #
-  # Creating it here, once, before either build starts, is what removes the race.
-  # internal/releaseflow's test fails if a second release-creating step ever
-  # comes back.
+  # When there were two build jobs (macOS and Windows), each published with an
+  # action that creates the release when it is missing, and on v0.13.3 both did:
+  # one release won and the other's asset was stranded in a draft. Creating it
+  # here, once, before any build starts, keeps that from coming back if a second
+  # build job is ever added. internal/releaseflow's test fails if a second
+  # release-creating step appears.
   create-release:
     needs: test
     runs-on: ubuntu-latest
@@ -107,52 +76,6 @@ jobs:
             exit 0
           fi
           gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --generate-notes
-
-  build-macos:
-    needs: create-release
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-go@v5
-        with:
-          go-version: '1.24'
-
-      - name: Derive version from tag
-        id: ver
-        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
-
-      - name: Build universal menu-bar binary
-        env:
-          LDFLAGS: "-X github.com/miou1107/multi-claude-switcher/core.Version=${{ steps.ver.outputs.version }}"
-        run: |
-          set -euxo pipefail
-          mkdir -p dist
-          CGO_ENABLED=1 GOARCH=arm64 CC="clang -arch arm64" \
-            go build -ldflags "$LDFLAGS" -o "dist/mcs-menubar-arm64" ./cmd/mcs-menubar
-          CGO_ENABLED=1 GOARCH=amd64 CC="clang -arch x86_64" \
-            go build -ldflags "$LDFLAGS" -o "dist/mcs-menubar-amd64" ./cmd/mcs-menubar
-          lipo -create -output "dist/mcs-menubar-macos-universal" \
-            "dist/mcs-menubar-arm64" "dist/mcs-menubar-amd64"
-          rm "dist/mcs-menubar-arm64" "dist/mcs-menubar-amd64"
-          file "dist/mcs-menubar-macos-universal"
-
-      - name: Package .app bundle
-        env:
-          VERSION: ${{ steps.ver.outputs.version }}
-        run: |
-          set -euxo pipefail
-          # Reuse the universal binary already built above instead of rebuilding.
-          ./scripts/package-app.sh "$VERSION" dist/mcs-menubar-macos-universal
-          ls -la dist
-
-      - name: Upload the macOS zip
-        # Only the packaged .app is published. It is the sole download and the
-        # self-updater's source (it extracts the tray binary from this zip).
-        # --clobber so a re-run replaces the asset instead of failing on it.
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh release upload "$GITHUB_REF_NAME" dist/Multi-Claude-Switcher_*_macos.zip --clobber
 
   build-windows:
     needs: create-release

@@ -288,11 +288,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","SF Pro Text","Ping
   </div>
 </div>
 <script>
-  // Bridge: mac hosts webkit.messageHandlers.mcs; Windows hosts a Go function
-  // bound as window.mcsAction via go-webview2's Bind API. Feature-detect once.
+  // Bridge: the host binds a Go function as window.mcsAction via go-webview2's
+  // Bind API.
   function send(a, arg){
-    if (window.mcsAction) { window.mcsAction(a, arg || ''); return; }
-    window.webkit.messageHandlers.mcs.postMessage({action:a, folder:arg||''});
+    window.mcsAction(a, arg || '');
   }
   // The window is only as tall as what is on it. The host used to be a fixed
   // 540px, which left a band of empty space under every short screen. This

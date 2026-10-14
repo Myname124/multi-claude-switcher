@@ -1,11 +1,10 @@
 # CLI reference
 
-> **The CLI is not included in releases.** The macOS and Windows downloads
-> contain the menu-bar / tray app only. To get `mcs` you have to
-> [build it from source](building.md):
+> **The CLI is not included in releases.** The Windows download contains the
+> tray app only. To get `mcs` you have to [build it from source](building.md):
 >
-> ```bash
-> go build -o bin/mcs ./cmd/mcs
+> ```powershell
+> go build -o bin/mcs.exe ./cmd/mcs
 > ```
 
 Profile arguments are folder names (e.g. `Claude`, `Claude_Profile2`), not full

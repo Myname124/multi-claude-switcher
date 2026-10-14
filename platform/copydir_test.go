@@ -3,7 +3,6 @@ package platform
 import (
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -72,9 +71,6 @@ func TestCopyDirMergePreservesModeAndTime(t *testing.T) {
 	}
 	if !fi.ModTime().Truncate(time.Second).Equal(old) {
 		t.Errorf("mtime = %v, want the source's %v", fi.ModTime(), old)
-	}
-	if runtime.GOOS != "windows" && fi.Mode().Perm() != 0o600 {
-		t.Errorf("mode = %v, want 0600 — a wider mode exposes the conversation", fi.Mode().Perm())
 	}
 }
 
