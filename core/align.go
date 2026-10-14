@@ -3,6 +3,7 @@ package core
 import (
 	"errors"
 	"fmt"
+	"log"
 )
 
 // ErrRunningProfileUnknown means Claude Desktop is running but MCS cannot tell
@@ -79,6 +80,13 @@ func (s *Switcher) alignAfterClose(srcProfilePath, dstProfilePath string) (*Sync
 	report, err := SyncSessions(srcProfilePath, dstProfilePath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to sync sessions: %w", err)
+	}
+	// Tools ride along with the sessions. Failing to copy them is logged rather
+	// than failing a sync whose conversations did arrive.
+	if tr, terr := SyncMCPServers(srcProfilePath, dstProfilePath); terr != nil {
+		log.Printf("[Tool Sync] MCP servers not synced: %v", terr)
+	} else {
+		logToolSync(srcProfilePath, dstProfilePath, tr)
 	}
 	return report, nil
 }

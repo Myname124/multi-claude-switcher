@@ -300,6 +300,14 @@ func (s *Switcher) autoAlign(srcProfilePath, dstProfilePath string) error {
 		log.Printf("[Safe Switch] Auto sync off: pure switch, no session data moved.")
 		return nil
 	}
+	// Tools first: they need no signed-in account, so a profile that was just
+	// created gets the user's MCP servers before its first sign-in.
+	if aToB, bToA, err := SyncMCPServersBidirectional(srcProfilePath, dstProfilePath); err != nil {
+		log.Printf("[Safe Switch] MCP servers not synced: %v", err)
+	} else {
+		logToolSync(srcProfilePath, dstProfilePath, aToB)
+		logToolSync(dstProfilePath, srcProfilePath, bToA)
+	}
 	_, srcErr := platform.GetProfileAccountUUID(srcProfilePath)
 	_, dstErr := platform.GetProfileAccountUUID(dstProfilePath)
 	if srcErr != nil || dstErr != nil {
@@ -334,4 +342,18 @@ func (s *Switcher) autoAlign(srcProfilePath, dstProfilePath string) error {
 		log.Printf("[Safe Switch] skipped a session file: %s", e)
 	}
 	return nil
+}
+
+// logToolSync records what SyncMCPServers changed. Like the session union, an
+// automatic sync has no screen to report into, so the log is where it shows.
+func logToolSync(src, dst string, r *ToolSyncReport) {
+	if r == nil {
+		return
+	}
+	if len(r.Added) > 0 {
+		log.Printf("[Tool Sync] %s -> %s: added MCP server(s) %v", filepath.Base(src), filepath.Base(dst), r.Added)
+	}
+	if len(r.Conflicts) > 0 {
+		log.Printf("[Tool Sync] %s -> %s: %v defined differently on each side; each profile kept its own", filepath.Base(src), filepath.Base(dst), r.Conflicts)
+	}
 }
